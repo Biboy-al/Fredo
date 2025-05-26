@@ -1,12 +1,24 @@
 mod server;
 use server::HttpRequests;
 
+macro_rules! unwrap_or_panic {
+    ($expr: expr) => {
+        match $expr{
+            Ok(res) =>{
+                res
+            },
+                Err(e) => {panic!("oh no {}", e)
+            }
+        }   
+    };
+}
+
 fn main() {
-    println!("Hello, world!");
 
-    const url: &str = "http://localhost:9090";
 
-    let server = server::Server{url:url};
+    let server = server::Server{url:"http://127.0.0.1:5000/registry"};
 
-    server.get_request();
+    let res = unwrap_or_panic!(server.register());
+
+    print!("{}", res);
 }

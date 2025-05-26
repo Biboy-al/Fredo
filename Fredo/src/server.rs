@@ -15,11 +15,24 @@ pub struct Server{
 }
 
 pub trait HttpRequests{
+    fn register(&self) -> Result<String, ureq::Error>;
     fn post_request(&self) -> Result<RecData, ureq::Error>;
     fn get_request(&self) -> Result<String, ureq::Error>;
 }
 
 impl HttpRequests for Server{
+
+    fn register(&self) -> Result<String, ureq::Error> {
+
+        let body: String = ureq::get(self.url)
+        .header("Example-Header", "header value")
+        .call()?
+        .body_mut()
+        .read_to_string()?;
+        print!("{}", body);
+        Ok(body)
+    }
+
     fn post_request(&self) -> Result<RecData, ureq::Error>{
 
         let send_body = SendData {sent: "yo".to_string()};
@@ -35,17 +48,13 @@ impl HttpRequests for Server{
     }
 
     fn get_request(&self) -> Result<String, ureq::Error> {
-        
-        let send_body = SendData {sent: "yo".to_string()};
 
         let body: String = ureq::get(self.url)
         .header("Example-Header", "header value")
         .call()?
         .body_mut()
         .read_to_string()?;
-
         Ok(body)
-
     }
     
 }
