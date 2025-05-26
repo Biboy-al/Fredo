@@ -8,7 +8,7 @@ app = Flask(__name__)
 random.seed(10)
 @app.route("/clients")
 def all_clients():
-    return "These are clients"
+    return fileOps.get_malwares()
 
 @app.route("/logs")
 def get_log():
@@ -24,7 +24,8 @@ def registry():
     malwareRegistry = str(random.random())
 
     malware = {
-        "id": malwareRegistry
+        "id": malwareRegistry,
+        "signature" : ""
     }
     
     entry = json.dumps(malware)
