@@ -1,4 +1,5 @@
-from flask import Flask
+from flask import Flask, request
+import uuid
 import random
 import json
 import fileOps
@@ -21,10 +22,11 @@ def connect():
 @app.route("/registry")
 def registry():
 
-    malwareRegistry = str(random.random())
+    malwareRegistry = str(uuid.uuid1().int)
 
     malware = {
         "id": malwareRegistry,
+        "ip": request.remote_addr,
         "signature" : ""
     }
     

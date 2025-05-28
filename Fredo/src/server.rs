@@ -7,29 +7,48 @@ pub struct SendData{
 
 #[derive(serde::Deserialize)]
 pub struct RecData{
-    rec: String
+    rec: String,
 }
 
 pub struct Server{
-    pub url: &'static str
+    pub url: &'static str,
+    pub reg: &'static str,
+    pub becon: &'static str,
 }
 
 pub trait HttpRequests{
     fn register(&self) -> Result<String, ureq::Error>;
+    fn becon(&self) -> Result<String, ureq::Error>;
     fn post_request(&self) -> Result<RecData, ureq::Error>;
     fn get_request(&self) -> Result<String, ureq::Error>;
 }
 
-impl HttpRequests for Server{
-
-    fn register(&self) -> Result<String, ureq::Error> {
-
-        let body: String = ureq::get(self.url)
+macro_rules! craft_req {
+    ($expr:expr) => {
+        ureq::get($expr)
         .header("Example-Header", "header value")
         .call()?
         .body_mut()
-        .read_to_string()?;
-        print!("{}", body);
+        .read_to_string()?
+    };
+}
+
+
+impl HttpRequests for Server{
+
+    fn register(&self) -> Result<String, ureq::Error> {
+        let url = format!("{}{}",self.url,self.reg);
+
+        let body = craft_req!(url);
+
+        Ok(body)
+    }
+
+    fn becon(&self) -> Result<String, ureq::Error> {
+        let url = format!("{}{}",self.url,self.becon);
+
+        let body = craft_req!(url);
+
         Ok(body)
     }
 

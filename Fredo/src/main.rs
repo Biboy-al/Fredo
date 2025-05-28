@@ -7,7 +7,7 @@ macro_rules! unwrap_or_panic {
             Ok(res) =>{
                 res
             },
-                Err(e) => {panic!("oh no {}", e)
+                Err(e) => {panic!("Couldn't connect to server {}", e)
             }
         }   
     };
@@ -16,9 +16,13 @@ macro_rules! unwrap_or_panic {
 fn main() {
 
 
-    let server = server::Server{url:"http://127.0.0.1:5000/registry"};
+    let server = server::Server{
+        url:"http://127.0.0.1:5000",
+        reg: "/registry",
+        becon: "/becon"
+    };
 
     let res = unwrap_or_panic!(server.register());
-
+    
     print!("{}", res);
 }
