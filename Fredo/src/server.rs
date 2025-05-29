@@ -14,7 +14,6 @@ pub struct Server{
     pub url: &'static str,
     pub reg: &'static str,
     pub becon: &'static str,
-    pub id: &'static str
 }
 
 pub trait HttpRequests{
@@ -47,8 +46,7 @@ impl HttpRequests for Server{
 
     async fn becon(&self) -> bool {
         let url = format!("{}{}",self.url,self.becon);
-        match reqwest::get(url)
-        .query(&[("id",self.id)]).send().await{
+        match reqwest::get(url).await{
             Ok(_) => true,
             Err(_) => false
         }
