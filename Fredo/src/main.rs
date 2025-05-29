@@ -1,4 +1,6 @@
 mod server;
+use std::{thread::sleep, time::Duration};
+
 use server::HttpRequests;
 
 macro_rules! unwrap_or_panic {
@@ -13,7 +15,8 @@ macro_rules! unwrap_or_panic {
     };
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
 
 
     let server = server::Server{
@@ -23,6 +26,22 @@ fn main() {
     };
 
     let res = unwrap_or_panic!(server.register());
-    
+
+    tokio::spawn(async move {
+        loop {
+            server.becon().await;
+            sleep(Duration::from_secs(10));
+        }
+
+        
+        
+    });
+
     print!("{}", res);
+
+    loop {
+        
+    }
+
+    
 }

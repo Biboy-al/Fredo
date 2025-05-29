@@ -1,4 +1,4 @@
-
+use reqwest;
 
 #[derive(serde::Serialize)]
 pub struct SendData{
@@ -14,11 +14,12 @@ pub struct Server{
     pub url: &'static str,
     pub reg: &'static str,
     pub becon: &'static str,
+    pub id: &'static str
 }
 
 pub trait HttpRequests{
     fn register(&self) -> Result<String, ureq::Error>;
-    fn becon(&self) -> Result<String, ureq::Error>;
+    async fn becon(&self) -> bool;
     fn post_request(&self) -> Result<RecData, ureq::Error>;
     fn get_request(&self) -> Result<String, ureq::Error>;
 }
@@ -44,12 +45,13 @@ impl HttpRequests for Server{
         Ok(body)
     }
 
-    fn becon(&self) -> Result<String, ureq::Error> {
+    async fn becon(&self) -> bool {
         let url = format!("{}{}",self.url,self.becon);
-
-        let body = craft_req!(url);
-
-        Ok(body)
+        match reqwest::get(url)
+        .query(&[("id",self.id)]).send().await{
+            Ok(_) => true,
+            Err(_) => false
+        }
     }
 
     fn post_request(&self) -> Result<RecData, ureq::Error>{

@@ -37,6 +37,10 @@ def registry():
     return malwareRegistry
     
 
+@app.route("/becon")
+def becon():
+    print("beconed from malware")
+    return "you are now beconning"
 
 if __name__ == "__main__":
     app.run(debug=True)
