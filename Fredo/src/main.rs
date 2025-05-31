@@ -1,7 +1,6 @@
 mod server;
 use std::{thread::sleep, time::Duration};
 
-use server::HttpRequests;
 
 macro_rules! unwrap_or_panic {
     ($expr: expr) => {
@@ -18,24 +17,20 @@ macro_rules! unwrap_or_panic {
 #[tokio::main]
 async fn main() {
     const URL: &'static str  = "http://127.0.0.1:5000";
-    let params = [("OS", "HI")];
 
     let server = server::Connection::new(&URL);
 
-    let id = unwrap_or_panic!(server.register(&params).await);
+    let id: String = unwrap_or_panic!(server.register("HI").await);
 
-    println!("{}",id);
+    tokio::spawn(async move {
+        loop {
+            server.becon(&id).await;
+            sleep(Duration::from_secs(10));
+        }
+    });
 
+    loop{
 
-    // let res = unwrap_or_panic!(server.register());
-
-    // tokio::spawn(async move {
-    //     loop {
-    //         server.becon().await;
-    //         sleep(Duration::from_secs(10));
-    //     }
-        
-    // });
-
+    }
     
 }

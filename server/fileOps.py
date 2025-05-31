@@ -10,6 +10,21 @@ def add_malware(malware_entry):
     with open(file_name, "w") as f:
         f.write(entry + "\n")
 
-def get_malwares():
-    with open("malwares.txt", "r") as f:
+def update_becon_malware(id, timestamp):
+
+    malware_json = json.loads(get_malware(id))
+
+    malware_json["last_beconed"] = timestamp
+
+    add_malware(malware_json)
+
+
+def get_malware(id):
+
+    file_name = f"malware/id_{id}.txt"
+
+    os.makedirs("malware", exist_ok="true")
+
+    with open(file_name, "r") as f:
         return f.read()
+    
