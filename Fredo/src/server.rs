@@ -1,4 +1,4 @@
-use reqwest;
+use reqwest::{self, Client};
 
 #[derive(serde::Serialize)]
 pub struct SendData{
@@ -10,14 +10,39 @@ pub struct RecData{
     rec: String,
 }
 
-pub struct Server{
-    pub url: &'static str,
-    pub reg: &'static str,
-    pub becon: &'static str,
+pub struct Connection{
+    url: &'static str,
+    reg: &'static str,
+    becon: &'static str,
+    server: reqwest::Client
+}
+
+macro_rules! unwrap_or_panic {
+    ($expr: expr) => {
+        match $expr{
+            Ok(res) =>{
+                res
+            },
+                Err(e) => {panic!("Couldn't connect to server with an error: {}", e)
+            }
+        }   
+    };
+}
+
+impl Connection{
+    pub fn new(url : &'static str) -> Connection{
+
+        Connection{
+            url:url,
+            reg: "/register",
+            becon: "/becon",
+            server: reqwest::Client::new()
+        }
+    }
 }
 
 pub trait HttpRequests{
-    fn register(&self) -> Result<String, ureq::Error>;
+    async fn register(&self, params: &[(&'static str, &'static str)]) -> Result<String, reqwest::Error>;
     async fn becon(&self) -> bool;
     fn post_request(&self) -> Result<RecData, ureq::Error>;
     fn get_request(&self) -> Result<String, ureq::Error>;
@@ -33,15 +58,19 @@ macro_rules! craft_req {
     };
 }
 
+impl HttpRequests for Connection{
 
-impl HttpRequests for Server{
 
-    fn register(&self) -> Result<String, ureq::Error> {
+    //the only one that should use a sync
+    async fn register(&self, params: &[(&'static str, &'static str)]) -> Result<String, reqwest::Error> {
+
         let url = format!("{}{}",self.url,self.reg);
 
-        let body = craft_req!(url);
+        let request = self.server.post(url)
+        .form(&params)
+        .send().await?;
 
-        Ok(body)
+        Ok(request.text().await?)
     }
 
     async fn becon(&self) -> bool {

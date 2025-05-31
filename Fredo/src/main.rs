@@ -17,31 +17,25 @@ macro_rules! unwrap_or_panic {
 
 #[tokio::main]
 async fn main() {
+    const URL: &'static str  = "http://127.0.0.1:5000";
+    let params = [("OS", "HI")];
+
+    let server = server::Connection::new(&URL);
+
+    let id = unwrap_or_panic!(server.register(&params).await);
+
+    println!("{}",id);
 
 
-    let server = server::Server{
-        url:"http://127.0.0.1:5000",
-        reg: "/registry",
-        becon: "/becon"
-    };
+    // let res = unwrap_or_panic!(server.register());
 
-    let res = unwrap_or_panic!(server.register());
-
-    tokio::spawn(async move {
-        loop {
-            server.becon().await;
-            sleep(Duration::from_secs(10));
-        }
-
+    // tokio::spawn(async move {
+    //     loop {
+    //         server.becon().await;
+    //         sleep(Duration::from_secs(10));
+    //     }
         
-        
-    });
-
-    print!("{}", res);
-
-    loop {
-        
-    }
+    // });
 
     
 }

