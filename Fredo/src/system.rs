@@ -1,0 +1,59 @@
+
+use windows::Win32::System::SystemInformation::{
+    GetSystemInfo,
+    SYSTEM_INFO,
+    PROCESSOR_ARCHITECTURE,
+    PROCESSOR_ARCHITECTURE_ALPHA,
+    PROCESSOR_ARCHITECTURE_ALPHA64,
+    PROCESSOR_ARCHITECTURE_AMD64,
+    PROCESSOR_ARCHITECTURE_ARM,
+    PROCESSOR_ARCHITECTURE_ARM64,
+    PROCESSOR_ARCHITECTURE_ARM32_ON_WIN64,
+    PROCESSOR_ARCHITECTURE_IA64,
+    PROCESSOR_ARCHITECTURE_IA32_ON_ARM64,
+    PROCESSOR_ARCHITECTURE_IA32_ON_WIN64,
+    PROCESSOR_ARCHITECTURE_INTEL,
+    PROCESSOR_ARCHITECTURE_MIPS,
+    PROCESSOR_ARCHITECTURE_MSIL,
+    PROCESSOR_ARCHITECTURE_NEUTRAL,
+    PROCESSOR_ARCHITECTURE_PPC,
+    PROCESSOR_ARCHITECTURE_SHX,
+    PROCESSOR_ARCHITECTURE_UNKNOWN,
+};
+
+pub fn get_windows_version() -> &'static str{
+    let mut system_info = SYSTEM_INFO::default();
+
+    unsafe {
+        GetSystemInfo(&mut system_info);
+    };
+
+    let arch = unsafe {
+        system_info.Anonymous.Anonymous.wProcessorArchitecture
+    };
+
+     get_system_arch(arch)
+}
+
+fn get_system_arch(arch: PROCESSOR_ARCHITECTURE) ->  &'static str {
+
+    match arch {
+        PROCESSOR_ARCHITECTURE_ALPHA => "Alpha",
+        PROCESSOR_ARCHITECTURE_ALPHA64 => "Alpha64",
+        PROCESSOR_ARCHITECTURE_AMD64 => "x64 (AMD or Intel 64-bit)",
+        PROCESSOR_ARCHITECTURE_ARM => "ARM",
+        PROCESSOR_ARCHITECTURE_ARM64 => "ARM64",
+        PROCESSOR_ARCHITECTURE_ARM32_ON_WIN64 => "ARM32 on Win64",
+        PROCESSOR_ARCHITECTURE_IA64 => "Intel Itanium (IA-64)",
+        PROCESSOR_ARCHITECTURE_IA32_ON_ARM64 => "x86 emulation on ARM64",
+        PROCESSOR_ARCHITECTURE_IA32_ON_WIN64 => "x86 emulation on Win64",
+        PROCESSOR_ARCHITECTURE_INTEL => "x86 (32-bit)",
+        PROCESSOR_ARCHITECTURE_MIPS => "MIPS",
+        PROCESSOR_ARCHITECTURE_MSIL => "MSIL",
+        PROCESSOR_ARCHITECTURE_NEUTRAL => "Neutral",
+        PROCESSOR_ARCHITECTURE_PPC => "PowerPC",
+        PROCESSOR_ARCHITECTURE_SHX => "SHX",
+        PROCESSOR_ARCHITECTURE_UNKNOWN => "Unknown",
+        _ => "Other / Reserved",
+    }
+}

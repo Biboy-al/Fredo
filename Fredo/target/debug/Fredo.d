@@ -1,1 +1,1 @@
-/Users/biboy/Desktop/projects/fredo/Fredo/Fredo/target/debug/Fredo: /Users/biboy/Desktop/projects/fredo/Fredo/Fredo/src/main.rs /Users/biboy/Desktop/projects/fredo/Fredo/Fredo/src/server.rs
+C:\Users\Alvien\OneDrive\Desktop\project\fredo\Fredo\Fredo\target\debug\Fredo.exe: C:\Users\Alvien\OneDrive\Desktop\project\fredo\Fredo\Fredo\src\main.rs C:\Users\Alvien\OneDrive\Desktop\project\fredo\Fredo\Fredo\src\server.rs C:\Users\Alvien\OneDrive\Desktop\project\fredo\Fredo\Fredo\src\system.rs
