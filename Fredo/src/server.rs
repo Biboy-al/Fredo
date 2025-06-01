@@ -1,34 +1,14 @@
-use reqwest::{self, Client};
-use chrono::{self, Utc};
+use serde_json::json;
 
-#[derive(serde::Serialize)]
-pub struct SendData{
-    sent: String
-}
-
-#[derive(serde::Deserialize)]
-pub struct RecData{
-    rec: String,
-}
 
 pub struct Connection<'a>{
     url: &'a str,
     reg: &'a str,
     becon: &'a str,
+    upload: &'a str,
     server: reqwest::Client
 }
 
-macro_rules! unwrap_or_panic {
-    ($expr: expr) => {
-        match $expr{
-            Ok(res) =>{
-                res
-            },
-                Err(e) => {panic!("Couldn't connect to server with an error: {}", e)
-            }
-        }   
-    };
-}
 
 impl<'a> Connection<'a>{
     pub fn new(url : &'a str) -> Connection<'a>{
@@ -37,6 +17,7 @@ impl<'a> Connection<'a>{
             url:url,
             reg: "/register",
             becon: "/becon",
+            upload: "/upload",
             server: reqwest::Client::new()
         }
     }
@@ -44,8 +25,9 @@ impl<'a> Connection<'a>{
 
     //the only one that should use a sync
     pub async fn register(&self, os:& str) -> Result<String, reqwest::Error> {
-        let params = [("OS", os)];
         let url = format!("{}{}",self.url,self.reg);
+
+        let params = [("OS", os)];
 
         let response = self.server.post(url)
         .form(&params)
@@ -56,8 +38,9 @@ impl<'a> Connection<'a>{
     }
 
     pub async fn becon(&self, id:& str) -> Result<String, reqwest::Error> {
-        let params = [("id", id), ("timestamp", &chrono::Utc::now().to_string())];
         let url = format!("{}{}",self.url,self.becon);
+        let params = [("id", id), ("timestamp", &chrono::Utc::now().to_string())];
+
         let response = self.server.get(url)
         .form(&params)
         .send()
@@ -66,6 +49,22 @@ impl<'a> Connection<'a>{
         Ok(response.text().await?)
     }
 
+    pub async fn send_data(&self, id:& str, data: &'static str) -> Result<String, reqwest::Error> {
+
+        let url = format!("{}{}",self.url,self.upload);
+
+        let data_json = json!({
+            "id" : &id,
+            "log": &data
+        });
+
+        let response = self.server.post(url)
+        .json(&data_json)
+        .send()
+        .await?;
+
+        Ok(response.text().await?)
+    }
     // pub fn post_request(&self) -> Result<RecData, ureq::Error>{
 
     //     let send_body = SendData {sent: "yo".to_string()};
