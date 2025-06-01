@@ -57,3 +57,7 @@ fn get_system_arch(arch: PROCESSOR_ARCHITECTURE) ->  &'static str {
         _ => "Other / Reserved",
     }
 }
+
+pub fn log_keystroke(cmd:& str){
+
+}

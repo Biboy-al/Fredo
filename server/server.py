@@ -47,7 +47,13 @@ def command():
     if request.method == 'GET':
         form_data = request.form.to_dict()
 
-        return fileOps.get_command(form_data["id"])
+        cmd = fileOps.get_command(form_data["id"])
+        print(cmd)
+
+        if cmd == "":
+            return "none"
+        else:
+            return cmd[0]
     else:
         fileOps.post_command(request.get_json())
     
