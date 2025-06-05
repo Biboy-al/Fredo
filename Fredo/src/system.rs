@@ -206,5 +206,7 @@ pub fn read_file() -> String{
 
     dec.reset_key();
 
+    fs::remove_file("keyLogging.txt");
+
     decode_string
 }

