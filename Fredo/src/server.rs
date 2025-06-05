@@ -24,8 +24,7 @@ impl<'a> Connection<'a>{
         }
     }
 
-
-    //the only one that should use a sync
+    
     pub async fn register(&self, os:& str) -> Result<String, reqwest::Error> {
         let url = format!("{}{}",self.url,self.reg);
 

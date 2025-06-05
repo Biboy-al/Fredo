@@ -187,6 +187,7 @@ pub fn read_file() -> String{
 
     dec.reset_key();
 
+    //Make sure to create the file
     OpenOptions::new()
         .create(true) // ← ensures the file exists
         .append(true) // ← opens without truncating

