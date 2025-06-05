@@ -11,3 +11,5 @@ reqwest = {version = "0.11", features = ["blocking", "json"]}
 async-trait = "0.1.88"
 chrono = "0.4.41"
 windows = {version = "0.61.1", features =["Win32_System_SystemInformation", "Win32_UI_WindowsAndMessaging","Win32_UI_Input_KeyboardAndMouse" ]}
+base64 = "0.22.1"
+once_cell = "1.21.3"

