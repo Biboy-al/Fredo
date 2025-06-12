@@ -3,7 +3,7 @@ import os
 
 def add_malware(malware_entry):
 
-    directory = f"malware/{malware_entry["id"]}"
+    directory = f"malware/{malware_entry['id']}"
 
     entry = json.dumps(malware_entry)
     
