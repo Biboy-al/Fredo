@@ -5,6 +5,7 @@ use once_cell::sync::Lazy;
 use std::io::Write;
 use crate::encode::{self, Encode};
 use std::path::PathBuf;
+use rand::{rngs::StdRng, SeedableRng, Rng};
 
 use windows::Win32::Foundation::{
     HWND, LPARAM, LRESULT, WPARAM

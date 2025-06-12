@@ -27,7 +27,6 @@ async fn main() {
     
     const URL: &'static str = "http://127.0.0.1:5000";
 
-    // let mut rng = Arc::new(rand::rng());
 
     let paused = Arc::new(AtomicBool::new(false));
     let server = Arc::new(server::Connection::new(&URL));
