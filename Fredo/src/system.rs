@@ -1,11 +1,13 @@
 
 use std::fs::{self, OpenOptions};
+use std::process;
 use std::sync::Mutex;
 use once_cell::sync::Lazy;
 use std::io::Write;
 use crate::encode::{self, Encode};
 use std::path::PathBuf;
 use rand::{rngs::StdRng, SeedableRng, Rng};
+use windows::Win32::System::Diagnostics::Debug::IsDebuggerPresent;
 
 use windows::Win32::Foundation::{
     HWND, LPARAM, LRESULT, WPARAM
@@ -235,5 +237,18 @@ pub fn delete_file(){
         Err(_) => {
 
         }
+    };
+}
+
+pub fn check_for_debugging(){
+    unsafe{
+
+        if IsDebuggerPresent().as_bool(){
+            print!("Fuck off");
+            process::exit(1);
+        }
+
+        print!("we good");
+
     };
 }
