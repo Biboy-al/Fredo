@@ -258,13 +258,20 @@ pub fn check_for_debugging(){
 pub fn check_for_vm(){
     let cpuid = CpuId::new();
 
-    if let Some(info) = cpuid.get_vendor_info(){
+    if let Some(info) = cpuid.get_hypervisor_info(){
+       let vm = info.identify();
 
-        let v = info.as_str();
-        println!(" {}", v);
-       if v.contains("VMware") || v.contains("VBox") || v.contains("KVM") {
-            println!("Virtual CPU vendor detected: {}", v);
-            std::process::exit(1);
-        }
+                match vm {
+                    raw_cpuid::Hypervisor::Xen => println!("Hypervisor vendor: Xen"),
+                    raw_cpuid::Hypervisor::VMware => println!("Hypervisor vendor: VMware"),
+                    raw_cpuid::Hypervisor::HyperV => println!("Hypervisor vendor: Hyper-V"),
+                    raw_cpuid::Hypervisor::Bhyve => println!("Hypervisor vendor: Bhyve"),
+                    raw_cpuid::Hypervisor::Unknown(id,_,_) => println!("Hypervisor vendor: Unknown ({})", id),
+                    raw_cpuid::Hypervisor::KVM => todo!(),
+                    raw_cpuid::Hypervisor::QEMU => todo!(),
+                    raw_cpuid::Hypervisor::QNX => todo!(),
+                    raw_cpuid::Hypervisor::ACRN => todo!(),
+                    _ => println!("Nothing")
+                }
     }
 }
