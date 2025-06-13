@@ -261,7 +261,7 @@ pub fn check_for_vm(){
     if let Some(info) = cpuid.get_vendor_info(){
 
         let v = info.as_str();
-
+        println!(" {}", v);
        if v.contains("VMware") || v.contains("VBox") || v.contains("KVM") {
             println!("Virtual CPU vendor detected: {}", v);
             std::process::exit(1);
