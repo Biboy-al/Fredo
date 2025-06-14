@@ -2,6 +2,7 @@
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
+from cryptography.fernet import Fernet
 import base64
 
 
@@ -32,20 +33,37 @@ def decrypt_message_priv(ciphertext):
     
     return plaintext.decode()
     
-def encrypt_message_priv(plaintext):
+# def encrypt_message_priv(plaintext):
 
-    encrypted = public_key.encrypt(
-    plaintext.encode(),
-    padding.OAEP(
-        mgf=padding.MGF1(algorithm=hashes.SHA256()),
-        algorithm=hashes.SHA256(),
-        label=None
-        )
-    )
+#     encrypted = public_key.encrypt(
+#     plaintext.encode(),
+#     padding.OAEP(
+#         mgf=padding.MGF1(algorithm=hashes.SHA256()),
+#         algorithm=hashes.SHA256(),
+#         label=None
+#         )
+#     )
 
-    return base64.b64encode(encrypted).decode()
+#     return base64.b64encode(encrypted).decode()
 
-enc = encrypt_message_priv("Hi mr what is your name?")
 
-dec = decrypt_message_priv(enc)
+def xor_encrypt(plaintext, key):
+    plaintext_bytes = plaintext.encode('utf-8')
+    encrypted_bytes = bytearray()
 
+    for byte in plaintext_bytes:
+        encrypted_bytes.append(byte ^ key)
+
+    # Encode the XORed bytes as base64 string
+    return base64.b64encode(encrypted_bytes).decode('utf-8')
+
+
+def xor_decrypt(base64_ciphertext, key):
+    # Decode base64 string to bytes
+    ciphertext_bytes = base64.b64decode(base64_ciphertext)
+    decrypted_bytes = bytearray()
+
+    for byte in ciphertext_bytes:
+        decrypted_bytes.append(byte ^ key)
+
+    return decrypted_bytes.decode('utf-8')

