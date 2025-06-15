@@ -83,3 +83,25 @@ def get_enc_key(id):
     malware_json = json.loads(read_file(id,"about.txt"))
 
     return int(malware_json['key'])
+
+def get_all_malware():
+    directory_path = "malware/"
+    folders = os.listdir(directory_path)
+
+    about_content = []
+
+    for folder in folders:
+        about_path = os.path.join(directory_path, folder, "about.txt")
+        if os.path.exists(about_path):
+            with open(about_path, "r") as file:
+                content = file.read()
+                about_content.append(content)
+        else:
+            print(f"No about.txt in {folder}")
+
+    return about_content
+
+
+def get_log(id):
+    return read_file(id, "logs.txt")
+    

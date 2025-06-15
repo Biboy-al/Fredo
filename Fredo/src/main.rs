@@ -217,7 +217,7 @@ async fn execute_command(cmd: &str, paused: Arc<AtomicBool>) {
 
         //if it's a slp sleep the malware
         "slp" => {
-            println!("{}", cmds[0]);
+            
             if let Ok(secs) = cmds[1].replace('\n', "").parse() {
                 println!("[Debugging]: Sleeping all background threads for {} seconds", secs);
                 paused.store(true, Ordering::Relaxed);
@@ -233,6 +233,7 @@ async fn execute_command(cmd: &str, paused: Arc<AtomicBool>) {
 
         //if it's pwn print
         "pwn" => {
+            println!("{}", cmds[1]);
             println!("{}", cmds[1]);
         }
         _ => {}

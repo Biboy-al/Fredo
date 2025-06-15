@@ -8,12 +8,12 @@ app = Flask(__name__)
 
 @app.route("/clients")
 def all_clients():
-    return fileOps.get_malwares()
+    return fileOps.get_all_malware()
 
 @app.route("/logs")
 def get_log():
-    
-    return "this is a log"
+    mal_id = request.args.get("id")
+    return fileOps.get_log(mal_id)
 
 @app.route("/upload", methods=['POST'])
 def connect():
