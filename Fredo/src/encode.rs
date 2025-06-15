@@ -1,6 +1,6 @@
 
 use base64::{engine::general_purpose, Engine as _};
-use rsa::{pkcs8::DecodePublicKey, traits::PaddingScheme, Pkcs1v15Encrypt, RsaPublicKey};
+use rsa::{pkcs8::DecodePublicKey,  Pkcs1v15Encrypt, RsaPublicKey};
 use rand::rngs::OsRng;
 pub struct Encode{
     org_key: u8,

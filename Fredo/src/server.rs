@@ -1,7 +1,5 @@
 use serde_json::{json, Value};
-use crate::encode::{self, EncodeConnection};
-use rand::{rngs::StdRng, SeedableRng, Rng};
-
+use crate::encode::{EncodeConnection};
 pub struct Connection<'a>{
     url: &'a str,
     reg: &'a str,
@@ -24,7 +22,7 @@ impl<'a> Connection<'a>{
             command: "/command",
             server: reqwest::Client::new(),
             encoder: EncodeConnection::new(
-             rand::thread_rng().gen_range(0..255),
+            key,
     "-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkVLiPyzANDNB3e4oWAFS
 dysBxnZG1Yc0Oa5KfRCETlmKC6saB3LfFm+LwM0auaOB+S0/H6gXSviIJ1FlP56E
