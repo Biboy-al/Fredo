@@ -17,6 +17,31 @@ The malware will consits of two main components:
 | generate unique ID based on host | |
 | send beacon signals to malware | |
 
+### Endpoints
+- **GET /clients**  
+  Returns a list of all registered malware instances.
+
+- **GET /logs?id={id}**  
+  Retrieves the keystroke logs collected from a specific client identified by the given ID.
+
+- **POST /upload**  
+  Receives encrypted log data from a client, decrypts it, and saves it to the system.
+
+- **POST /register**  
+  Registers a new malware instance by decrypting the incoming data and storing its information.
+
+- **POST /becon**  
+  Updates the last seen timestamp for a malware instance during its periodic beaconing.
+
+- **GET /command**  
+  Retrieves the latest command for a malware instance, encrypting the response using its assigned key.
+
+- **POST /command**  
+  Posts a new command to be executed by a specific malware instance.
+
+
+### Malware
+
 #### Defensive Capabilities:
 
 - The defender may use antivirus software to detect the malware.
@@ -65,10 +90,19 @@ The malware will consits of two main components:
 |--------|------|
 | Lack of forward security | The malware will generate, establish only one xor key throughout it's life time. This means that if the key we're somehow to be exposed, it will compromise the confidentaility of the communication |
 | Weak key | For both network, and file encryption, it uses a xor encrpytion. this means that the key has a possible value of 1 - 255. This makes it grealty insecure, as a analyst can easily brute force it until it finds the plain text |
-| Registers new malware upon reset |  Upon rest of the system, the malware will register itself as if it's a new malware. This means that a malware author may find it confusing if this is an old malware or a new one. Although this does mean a new key will be generated.|
-| Command request only gets one message at a time | |
+|Limited id deriving function| The c2 server derives the id of the malware from it's OS fingerprint. This means that hosts with the same fingerprint results with the same id.|
 
-## How to Build the project
+## How to Build the project / Test
+
+### Server
+
+Start off by starting the server:
+1. cd into server folder
+2. install all dependencies (Flask, Cryptogrpahy, Requests)
+3. Run this command
+```
+Python3 server.py
+```
 
 
 ### Malware
@@ -101,14 +135,33 @@ To compile the malware into an executable for a 64-bit windows system:
 cargo build
 ```
 
-
 ### Server
 
-To run the server:
-1. cd into server folder
-2. install all dependencies
-3. Run this command
+as a tool to interact with the server, a attacker cli tool is made for you. to run it:
+
+1. cd into the attacker directory
+2. python attacker.py <commands>
+
+All commands:
+
+lists - Lists all registered malware
 ```
-Python3 server.py
+python attacker.py list
+```
+log - obtains the key logs of a certain malware
+```
+python attacker.py log <id>
+```
+pwn - sends a string to display on the malware
+```
+python attacker.py pwn "<msg>" <id>
+```
+slp - commands the malware to sleep for an amount of time
+```
+python attacker.py log slp <sec> <id>
+```
+shd - tells a certain malware to shut down
+```
+python attacker.py log  shd <id>
 ```
 
