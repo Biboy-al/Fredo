@@ -1,12 +1,4 @@
-# Fredo
-
-Fredo, to me is one of the most gut renching betrayals in cnimatic histoy. I am of course talking about GodFather 2. This malware, just like Fredo, will infect your system loosgining your guard, and when you least expect it will betray you (although it will betray you from the start).
-
-Call me theatrical, but I like calling my projects names, it creates a deeper link, and invests me in it's development.
-
-## What is this?
-
-Fredo, is trojan writen in Rust. It will act as both a keyloggering, and remote code execition from a C2 server.
+# CYBR473 MALWARE
 
 ## Architecture
 
@@ -27,29 +19,50 @@ The malware will consits of two main components:
 
 #### Defensive Capabilities:
 
+- The defender may use antivirus software to detect the malware.
+  1. T The final binary of the malware will be packed
 
-- Anti-sanbox
-  1. Upon inital execution the malware will sleep for 10 minutes. Sandboxes have a predefined timer, and this is function will wait out it's timer. 
-  2. Malware takes a snapshot of running process. If process is < 30, malware will exit. Sandboxes run on minimal number of process.
-- Anti Static Analysis
+- The defender will collect packet traces from the network and use traffic analysis to identify infected hosts (e.g., via their data exfiltration and beaconing), and develop network-based signatures to block its traffic at the network gateway.
+  1. The requests sent to the C2 server will be sent at random intervals. This makes it harder for the malware to infer a trends between the malware and c2. Potentially hiding it with the traffic.
+
+- The defender may look for evidence of keylog files on infected machines.
+  1. To make it more legitimite, the file used to store and exfiltrate the data, will be stored in a secure place. calling itself the "security.log" file.
+
+- The defender may use network traffic analysis to find your C2 server's IP address or domain. This can be used to blocklist it at the gateway, and also for a takedown request to be actioned.
+
+- Reboot the client machines so that the malware will be forced to shut down.
+  1.  Malware adds itself as a schedulled task. When user exit, and opens windows the malware will run again. This sets up persistency
+
+- If the defender identifies the infected machine and obtains a copy of your malware, they may first send it to a service like VirusTotal for signature matching or basic static analysis.
   1. The final binary of the malware will be packed
   2. Malware has dead branches, i.e if statements that will always be false or true. This aims to confuse static analysis programs.
-- Anti Debugger
-  1. Malware uses the "IsDebuggerPresent" windows function. Checking whenever the malware is attached to a debugger if it is exit.
-- Anti VM
-  1. Malware takes a snapshot of the running process, and checks "VMbox.exe" etc. if see exit.
-- Discrete keylogging file
-  1. To make it more legitimite, the file used to store and exfiltrate the data, will be stored in a secure place. calling itself the "security.log" file.
-- Discrete Malware
-  1. Upon inital execution, malware will move itself to a legitimate position "System32/micrisoftSystemUpdater.exe".
-- Network signature:
-  1. The requests sent to the C2 server will be sent at random intervals. This makes it harder for an analysit to check for behaviour.
-- Unspoofable C2 Server
-  1. Malware and C2 uses public key encrytpion to establish shared key. This prevent the C2 server from being spoofed and send data to the malware.
-- Persistency
-  1. Malware adds itself as a schedulled task. When user exit, and opens windows the malware will run again.
  
+- They are likely to use a disassembler like IDA Pro or Ghidra to analyze your malware.
+
+- The defender may run your malware inside a standard sandbox for quick dynamic analysis.
+  1. Upon inital execution the malware will sleep for 10 minutes. Sandboxes have a predefined timer, and this is function will wait out it's timer.
+  2. Malware takes a snapshot of running process. If process is < 30, malware will exit. Sandboxes run on minimal number of process.
+
+- They may also use a debugger like OllyDbg or x64dbg for deep dynamic analysis—setting breakpoints, tracing execution, or stepping through the code.
+  1. Malware uses the "IsDebuggerPresent" windows function. Checking whenever the malware is attached to a debugger if it is exit.
   
+
+- The defender may analyze your malware in a virtual machine environment (e.g., using VirtualBox).
+ 1. Malware takes a snapshot of the running process, and checks "VMbox.exe" etc. if see exit.
+    
+- The malware analyst will eventually find the hard-coded key and decipher the malware's communications with the C2.
+  1. The Xor Key used to encrypt the data is randomized during execution. This makes it harder for analyst to detrmine the key, needing to look through the memory.
+
+- The analyst might spoof the C&C server to send a shutdown command to all infected hosts on the network (a "kill-switch").
+  1. Upon first regestration, the malware generates a randomized key and encrypts it using the the public key of the c2 server. The c2 server then decrypts using the private key, and encrypts further messages using symettric key. The key establishment ensures that only c2 server can obtain the generated key, ensuring that it is the legitmate server.
+
+- The defender may look for suspicious processes or unusual binaries on disk and trust only processes signed by Microsoft or located in C:\Windows\System32.
+  1. Upon inital execution, malware will move itself to a legitimate directory "System32" and call itself "micrisoftSystemUpdater.exe".
+
+
+- The defender might use tools to enumerate running processes, loaded DLLs, or system calls to detect malicious behavior—inspecting APIs like OpenProcess, CreateFile, etc.
+
+- The defender might search for persistent malware artifacts in startup folders, registry keys, or scheduled tasks.
 
 
 ### Malware
@@ -57,7 +70,7 @@ The malware will consits of two main components:
 |Function| done?|
 |--------|------|
 | Keylogging  | |
-| Exfiltrate data | |
+| New malware regresetation after windows reset | |
 | Persistency | |
 | Remote code execution | |
 
@@ -66,10 +79,9 @@ The malware will consits of two main components:
 
 |Limit| Description|
 |--------|------|
-| Lack of forward security | |
-| Exfiltrate data | |
-| Persistency | |
-| Remote code execution | |
+| Lack of forward security | The malware will generate, establish only one xor key throughout it's life time. This means that if the key we're somehow to be exposed, it will compromise the confidentaility of the communication |
+| Weak key | For both network, and file encryption, it uses a xor encrpytion. this means that the key has a possible value of 1 - 255. This makes it grealty insecure, as a analyst can easily brute force it until it finds the plain text |
+| Registers new malware upon reset |  Upon rest of the system, the malware will register itself as if it's a new malware. This means that a malware author may find it confusing if this is an old malware or a new one. Although this does mean a new key will be generated.|
 
 ## How to Build the project
 
