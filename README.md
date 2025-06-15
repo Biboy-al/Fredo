@@ -82,6 +82,7 @@ The malware will consits of two main components:
 | Lack of forward security | The malware will generate, establish only one xor key throughout it's life time. This means that if the key we're somehow to be exposed, it will compromise the confidentaility of the communication |
 | Weak key | For both network, and file encryption, it uses a xor encrpytion. this means that the key has a possible value of 1 - 255. This makes it grealty insecure, as a analyst can easily brute force it until it finds the plain text |
 | Registers new malware upon reset |  Upon rest of the system, the malware will register itself as if it's a new malware. This means that a malware author may find it confusing if this is an old malware or a new one. Although this does mean a new key will be generated.|
+| Command request only gets one message at a time | |
 
 ## How to Build the project
 
