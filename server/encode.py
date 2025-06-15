@@ -2,6 +2,8 @@
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 import base64
+import hashlib
+import random
 
 
 with open("private_key.pem", "rb") as key_file:
@@ -45,3 +47,9 @@ def xor_decrypt(base64_ciphertext, key):
         decrypted_bytes.append(byte ^ key)
 
     return decrypted_bytes.decode('utf-8')
+
+
+def generate_id(s, min_val=100000, max_val=900000):
+    seed = int(hashlib.md5(s.encode()).hexdigest(), 16)
+    rng = random.Random(seed)
+    return rng.randint(min_val, max_val)

