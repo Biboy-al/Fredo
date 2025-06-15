@@ -95,7 +95,7 @@ rustup target add i686-pc-windows-gnu
 ```
 
 ```
-cargo build --target=i686-pc-windows-gnu
+cargo build --release --target=i686-pc-windows-msvc
 ```
 
 To compile the malware into an executable for a 64-bit windows system:
