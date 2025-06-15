@@ -28,8 +28,6 @@ The malware will consits of two main components:
 - The defender may look for evidence of keylog files on infected machines.
   1. To make it more legitimite, the file used to store and exfiltrate the data, will be stored in a secure place. calling itself the "security.log" file.
 
-- The defender may use network traffic analysis to find your C2 server's IP address or domain. This can be used to blocklist it at the gateway, and also for a takedown request to be actioned.
-
 - Reboot the client machines so that the malware will be forced to shut down.
   1.  Malware adds itself as a schedulled task. When user exit, and opens windows the malware will run again. This sets up persistency
 
@@ -38,6 +36,7 @@ The malware will consits of two main components:
   2. Malware has dead branches, i.e if statements that will always be false or true. This aims to confuse static analysis programs.
  
 - They are likely to use a disassembler like IDA Pro or Ghidra to analyze your malware.
+  1. Have dead branches to make the code more complicated
 
 - The defender may run your malware inside a standard sandbox for quick dynamic analysis.
   1. Upon inital execution the malware will sleep for 10 minutes. Sandboxes have a predefined timer, and this is function will wait out it's timer.
@@ -58,21 +57,6 @@ The malware will consits of two main components:
 
 - The defender may look for suspicious processes or unusual binaries on disk and trust only processes signed by Microsoft or located in C:\Windows\System32.
   1. Upon inital execution, malware will move itself to a legitimate directory "System32" and call itself "micrisoftSystemUpdater.exe".
-
-
-- The defender might use tools to enumerate running processes, loaded DLLs, or system calls to detect malicious behavior—inspecting APIs like OpenProcess, CreateFile, etc.
-
-- The defender might search for persistent malware artifacts in startup folders, registry keys, or scheduled tasks.
-
-
-### Malware
-
-|Function| done?|
-|--------|------|
-| Keylogging  | |
-| New malware regresetation after windows reset | |
-| Persistency | |
-| Remote code execution | |
 
 
 ## Limitations
