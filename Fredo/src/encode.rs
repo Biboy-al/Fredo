@@ -68,7 +68,7 @@ impl EncodeFile{
         let cipher = general_purpose::STANDARD.decode(&base_cipher).expect("Cannot encode");
 
         let mut encode_string = Vec::new();
-        
+
         //byte by byte decoding it
         for byte in cipher{
             

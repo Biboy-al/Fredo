@@ -244,7 +244,7 @@ pub fn read_file() -> String{
 
     //displays where the keylogging file is
     println!("{}",KEYLOGGING_FILE.display());
-
+    
     //rest the key for decoding
     dec.reset_key();
 
