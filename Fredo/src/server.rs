@@ -166,8 +166,6 @@ impl<'a> Connection<'a>{
         //encrypt the json using the publick key
         let encrypted = self.encoder.pub_key_enc(&json_string);
 
-        println!("{}",encrypted);
-
         //put the encrypted data into a sjon that is sent of
         json!({
             "data": encrypted
