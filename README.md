@@ -1,4 +1,4 @@
-# Freado
+# Fredo
 
 ## Architecture
 
