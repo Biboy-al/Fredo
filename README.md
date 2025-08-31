@@ -1,8 +1,8 @@
-# CYBR473 MALWARE
+# Freado
 
 ## Architecture
 
-The malware will consits of two main components:
+The malware will consists of two main components:
 
 - C2 Server: This is where the malware will registry itself, exfiltrate data, and run remote commands.
 - Maleware : This is the malware it self, logging key strokes.
